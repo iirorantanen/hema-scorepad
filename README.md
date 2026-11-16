@@ -7,6 +7,7 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 - The display is split into a Red half and a Blue half, each showing that fencer's score.
 - Tapping a half awards one point to that fencer.
 - The scoreboard gives a signal for each point, so the referee can keep watching the fencers: one vibration for Red, two for Blue.
+- A bout timer counts down from 3:00. Tapping it starts, pauses and resumes it. It stops at 0:00 without a signal, and points can still be awarded.
 - Nothing leaves the device. The app has no internet permission.
 
 ## Install
