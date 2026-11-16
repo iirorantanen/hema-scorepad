@@ -1,0 +1,67 @@
+# Do not rename this file once releases exist. The APK's version code is
+# github.run_number, which is counted per workflow file: a renamed file starts
+# again at 1 and Android rejects the next release as a downgrade.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # creating the GitHub Release
+
+# The signing secrets are created by scripts/setup-release-key.sh (ADR 0001) and
+# are handed only to the two steps that need them.
+jobs:
+  release:
+    runs-on: ubuntu-24.04 # image ships Android platform 37.0 and build-tools 36.0.0
+    steps:
+      - name: Check signing secrets
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          for name in RELEASE_KEYSTORE_BASE64 RELEASE_KEYSTORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Repository secret $name is missing. Run scripts/setup-release-key.sh once to create the signing key and its secrets."
+              exit 1
+            fi
+          done
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Unit tests
+        run: ./gradlew test
+
+      - name: Release build
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          # Passwords reach Gradle through the environment, never the command line.
+          ORG_GRADLE_PROJECT_signingStorePassword: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingKeyAlias: ${{ secrets.RELEASE_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_signingKeyPassword: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          base64 -d <<<"$RELEASE_KEYSTORE_BASE64" > "$RUNNER_TEMP/release.jks"
+          ./gradlew :app:assembleRelease \
+            -PversionName="$version" \
+            -PversionCode="$GITHUB_RUN_NUMBER" \
+            -PsigningStoreFile="$RUNNER_TEMP/release.jks"
+          # Only a signed build produces app-release.apk, so an unsigned one fails here.
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/hema-scoreboard-$version.apk"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP"/hema-scoreboard-*.apk \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
