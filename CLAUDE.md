@@ -11,3 +11,7 @@ The five canonical triage labels, used under their default names. See `docs/agen
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+## README
+
+A change that adds a feature or alters behaviour a referee can see updates `README.md` in the same change. See `CODING_STANDARDS.md`.
