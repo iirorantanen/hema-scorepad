@@ -1,5 +1,8 @@
 package io.github.iirorantanen.hemascoreboard.bout
 
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -139,5 +142,87 @@ class BoutTest {
 
         assertEquals(1, update.state.score(Fencer.BLUE))
         assertEquals(listOf(Signal.BLUE_POINT), update.signals)
+    }
+
+    @Test
+    fun `each point is logged with the fencer, the bout timer reading and the score after it`() {
+        val bout = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(20.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .elapse(15.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+
+        assertEquals(
+            listOf(
+                LoggedPoint(Fencer.BLUE, 2.minutes + 40.seconds, red = 0, blue = 1),
+                LoggedPoint(Fencer.RED, 2.minutes + 25.seconds, red = 1, blue = 1),
+            ),
+            bout.log,
+        )
+    }
+
+    @Test
+    fun `undo removes the most recent point and its log entry without a signal`() {
+        val update = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .handle(RefereeAction.Undo)
+
+        assertEquals(1, update.state.score(Fencer.RED))
+        assertEquals(0, update.state.score(Fencer.BLUE))
+        assertEquals(listOf(LoggedPoint(Fencer.RED, 3.minutes, red = 1, blue = 0)), update.state.log)
+        assertEquals(emptyList(), update.signals)
+    }
+
+    @Test
+    fun `undo at 0-0 does nothing`() {
+        val update = BoutState().handle(RefereeAction.Undo)
+
+        assertEquals(BoutState(), update.state)
+        assertEquals(emptyList(), update.signals)
+    }
+
+    @Test
+    fun `undo can be repeated back to 0-0 with the log matching the score at each step`() {
+        val first = LoggedPoint(Fencer.RED, 3.minutes, red = 1, blue = 0)
+        val second = LoggedPoint(Fencer.BLUE, 3.minutes, red = 1, blue = 1)
+        var bout = listOf(Fencer.RED, Fencer.BLUE, Fencer.BLUE)
+            .fold(BoutState()) { state, fencer -> state.handle(RefereeAction.AwardPoint(fencer)).state }
+
+        fun undoLeaves(red: Int, blue: Int, log: List<LoggedPoint>) {
+            bout = bout.handle(RefereeAction.Undo).state
+            assertEquals(red, bout.score(Fencer.RED))
+            assertEquals(blue, bout.score(Fencer.BLUE))
+            assertEquals(log, bout.log)
+        }
+
+        undoLeaves(red = 1, blue = 1, log = listOf(first, second))
+        undoLeaves(red = 1, blue = 0, log = listOf(first))
+        undoLeaves(red = 0, blue = 0, log = emptyList())
+        undoLeaves(red = 0, blue = 0, log = emptyList())
+    }
+
+    @Test
+    fun `undo does not change the bout timer`() {
+        val bout = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(10.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .elapse(10.seconds).state
+            .handle(RefereeAction.Undo).state
+
+        assertEquals(0, bout.score(Fencer.RED))
+        assertTrue(bout.timerRunning)
+        assertEquals(2.minutes + 40.seconds, bout.timeRemaining)
+    }
+
+    @Test
+    fun `a bout with logged points survives being saved and restored`() {
+        val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .handle(RefereeAction.Undo).state
+
+        val bytes = ByteArrayOutputStream().also { ObjectOutputStream(it).writeObject(bout) }.toByteArray()
+        val restored = ObjectInputStream(bytes.inputStream()).readObject()
+
+        assertEquals(bout, restored)
     }
 }

@@ -9,6 +9,9 @@ enum class Fencer { RED, BLUE }
 sealed interface RefereeAction {
     data class AwardPoint(val fencer: Fencer) : RefereeAction
 
+    /** Takes back the most recent point. There is no redo. */
+    data object Undo : RefereeAction
+
     /** A tap on the bout timer: starts it, pauses it or resumes it. */
     data object ToggleTimer : RefereeAction
 }
@@ -18,23 +21,32 @@ enum class Signal { RED_POINT, BLUE_POINT }
 
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
+/** One awarded point: who got it, the bout timer reading at that moment, and the score after it. */
+data class LoggedPoint(val fencer: Fencer, val timeRemaining: Duration, val red: Int, val blue: Int) : Serializable
+
 // Serializable so the screen can keep the bout across rotation without knowing its fields.
 data class BoutState(
-    private val red: Int = 0,
-    private val blue: Int = 0,
+    /** Every point still standing, oldest first. The score is the last entry's score. */
+    val log: List<LoggedPoint> = emptyList(),
     val timeRemaining: Duration = 3.minutes,
     val timerRunning: Boolean = false,
 ) : Serializable {
     fun score(fencer: Fencer): Int = when (fencer) {
-        Fencer.RED -> red
-        Fencer.BLUE -> blue
+        Fencer.RED -> log.lastOrNull()?.red ?: 0
+        Fencer.BLUE -> log.lastOrNull()?.blue ?: 0
     }
 
     fun handle(action: RefereeAction): BoutUpdate = when (action) {
-        is RefereeAction.AwardPoint -> when (action.fencer) {
-            Fencer.RED -> BoutUpdate(copy(red = red + 1), listOf(Signal.RED_POINT))
-            Fencer.BLUE -> BoutUpdate(copy(blue = blue + 1), listOf(Signal.BLUE_POINT))
+        is RefereeAction.AwardPoint -> {
+            val red = score(Fencer.RED) + if (action.fencer == Fencer.RED) 1 else 0
+            val blue = score(Fencer.BLUE) + if (action.fencer == Fencer.BLUE) 1 else 0
+            val signal = when (action.fencer) {
+                Fencer.RED -> Signal.RED_POINT
+                Fencer.BLUE -> Signal.BLUE_POINT
+            }
+            BoutUpdate(copy(log = log + LoggedPoint(action.fencer, timeRemaining, red, blue)), listOf(signal))
         }
+        RefereeAction.Undo -> BoutUpdate(copy(log = log.dropLast(1)), emptyList())
         RefereeAction.ToggleTimer ->
             BoutUpdate(copy(timerRunning = !timerRunning && timeRemaining > Duration.ZERO), emptyList())
     }
