@@ -40,6 +40,10 @@ _Avoid_: User, judge, scorekeeper
 One unit of score the referee awards directly to a fencer. The scoreboard does not know why the point was given.
 _Avoid_: Hit, touch
 
+**Signal**:
+Something the scoreboard tells the referee without them looking at the display, such as which fencer was just awarded a point.
+_Avoid_: Alert, notification, haptic
+
 **Bout timer**:
 A countdown from the bout length that keeps running while points are awarded, until the referee pauses it.
 _Avoid_: Clock, stopwatch
