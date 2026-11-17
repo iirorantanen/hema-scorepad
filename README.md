@@ -20,6 +20,12 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 
 ## Development
 
+Enable the pre-commit hook once per clone. It runs `./gradlew check` (the unit tests and Android lint) and refuses the commit when that fails. The hook runs on the development machine only and triggers nothing on GitHub.
+
+```bash
+git config core.hooksPath .githooks
+```
+
 Run the unit tests:
 
 ```bash
