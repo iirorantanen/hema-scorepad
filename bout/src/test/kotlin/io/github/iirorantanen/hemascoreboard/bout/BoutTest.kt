@@ -301,6 +301,106 @@ class BoutTest {
         assertEquals(2.minutes + 40.seconds, bout.timeRemaining)
     }
 
+    private fun BoutState.award(fencer: Fencer, points: Int): BoutState =
+        (1..points).fold(this) { bout, _ -> bout.handle(RefereeAction.AwardPoint(fencer)).state }
+
+    @Test
+    fun `the point that reaches the point cap gives the point signal, then the end of bout signal`() {
+        val ninth = BoutState().award(Fencer.RED, 8).handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(listOf(Signal.RED_POINT), ninth.signals)
+
+        val tenth = ninth.state.handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(10, tenth.state.score(Fencer.RED))
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), tenth.signals)
+    }
+
+    @Test
+    fun `the bout timer stops when a fencer reaches the point cap`() {
+        val bout = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(1.minutes).state
+            .award(Fencer.BLUE, 10)
+            .elapse(10.seconds).state
+
+        assertFalse(bout.timerRunning)
+        assertEquals(2.minutes, bout.timeRemaining)
+    }
+
+    @Test
+    fun `a bout timer resumed after the point cap stops again when the other fencer reaches it`() {
+        val bout = BoutState().award(Fencer.BLUE, 9).award(Fencer.RED, 10)
+            .handle(RefereeAction.ToggleTimer).state
+            .elapse(10.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .elapse(10.seconds).state
+
+        assertEquals(10, bout.score(Fencer.BLUE))
+        assertFalse(bout.timerRunning)
+        assertEquals(2.minutes + 50.seconds, bout.timeRemaining)
+    }
+
+    @Test
+    fun `a tap for a fencer at the point cap changes nothing and gives no signal`() {
+        val capped = BoutState().award(Fencer.RED, 10)
+
+        val update = capped.handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(capped, update.state)
+        assertEquals(10, update.state.score(Fencer.RED))
+        assertEquals(emptyList(), update.signals)
+    }
+
+    @Test
+    fun `the other fencer can still be awarded points up to the point cap, without a second end of bout signal`() {
+        val redCapped = BoutState().award(Fencer.BLUE, 8).award(Fencer.RED, 10)
+
+        val ninth = redCapped.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        assertEquals(9, ninth.state.score(Fencer.BLUE))
+        assertEquals(listOf(Signal.BLUE_POINT), ninth.signals)
+
+        val tenth = ninth.state.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        assertEquals(10, tenth.state.score(Fencer.RED))
+        assertEquals(10, tenth.state.score(Fencer.BLUE))
+        assertEquals(listOf(Signal.BLUE_POINT), tenth.signals)
+
+        val eleventh = tenth.state.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        assertEquals(10, eleventh.state.score(Fencer.BLUE))
+        assertEquals(emptyList(), eleventh.signals)
+    }
+
+    @Test
+    fun `undo after the point cap leaves the bout timer paused until the referee resumes it`() {
+        val undone = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(1.minutes).state
+            .award(Fencer.RED, 10)
+            .handle(RefereeAction.Undo).state
+            .elapse(10.seconds).state
+
+        assertEquals(9, undone.score(Fencer.RED))
+        assertFalse(undone.timerRunning)
+        assertEquals(2.minutes, undone.timeRemaining)
+
+        val resumed = undone.handle(RefereeAction.ToggleTimer).state
+            .elapse(10.seconds).state
+
+        assertTrue(resumed.timerRunning)
+        assertEquals(1.minutes + 50.seconds, resumed.timeRemaining)
+    }
+
+    @Test
+    fun `undo after the point cap lets that fencer be awarded again, ending the bout again`() {
+        val update = BoutState().award(Fencer.RED, 10)
+            .handle(RefereeAction.Undo).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(10, update.state.score(Fencer.RED))
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), update.signals)
+    }
+
     @Test
     fun `a bout with logged points survives being saved and restored`() {
         val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state

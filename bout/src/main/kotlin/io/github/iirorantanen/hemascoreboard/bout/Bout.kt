@@ -18,7 +18,10 @@ sealed interface RefereeAction {
 }
 
 /** Something the referee should be told about, without looking at the screen. */
-enum class Signal { RED_POINT, BLUE_POINT, LAST_EXCHANGE }
+enum class Signal { RED_POINT, BLUE_POINT, LAST_EXCHANGE, END_OF_BOUT }
+
+// Fixed for now; the referee chooses it once bout settings exist.
+private const val POINT_CAP = 10
 
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
@@ -40,14 +43,25 @@ data class BoutState(
     }
 
     fun handle(action: RefereeAction): BoutUpdate = when (action) {
-        is RefereeAction.AwardPoint -> {
+        is RefereeAction.AwardPoint -> if (score(action.fencer) >= POINT_CAP) {
+            BoutUpdate(this, emptyList())
+        } else {
             val red = score(Fencer.RED) + if (action.fencer == Fencer.RED) 1 else 0
             val blue = score(Fencer.BLUE) + if (action.fencer == Fencer.BLUE) 1 else 0
             val signal = when (action.fencer) {
                 Fencer.RED -> Signal.RED_POINT
                 Fencer.BLUE -> Signal.BLUE_POINT
             }
-            BoutUpdate(copy(log = log + LoggedPoint(action.fencer, timeRemaining, red, blue)), listOf(signal))
+            val reachesCap = score(action.fencer) + 1 == POINT_CAP
+            // The bout ends once: the second fencer reaching the point cap gives no second signal.
+            val alreadyEnded = maxOf(score(Fencer.RED), score(Fencer.BLUE)) == POINT_CAP
+            BoutUpdate(
+                copy(
+                    log = log + LoggedPoint(action.fencer, timeRemaining, red, blue),
+                    timerRunning = timerRunning && !reachesCap,
+                ),
+                if (reachesCap && !alreadyEnded) listOf(signal, Signal.END_OF_BOUT) else listOf(signal),
+            )
         }
         RefereeAction.Undo -> BoutUpdate(copy(log = log.dropLast(1)), emptyList())
         RefereeAction.ToggleTimer ->

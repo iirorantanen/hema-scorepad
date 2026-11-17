@@ -9,7 +9,8 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 - The scoreboard gives a signal for each point, so the referee can keep watching the fencers: one vibration for Red, two for Blue. Signals given close together play one after another.
 - A bout timer counts down from 3:00. Tapping it starts, pauses and resumes it. It stops at 0:00 without a signal, and points can still be awarded.
 - When ten seconds remain, the scoreboard gives one long vibration and shows "Last exchange" for the rest of the bout. The signal is given once per bout, however often the bout timer is paused and resumed.
-- Undo takes back the most recent point. It can be repeated back to 0–0, gives no signal and does not change the bout timer.
+- The point cap is 10. When a fencer reaches it, the scoreboard gives three medium vibrations after the point's own signal and the bout timer stops. Taps for that fencer are then ignored. The other fencer can still be awarded points up to the point cap, so 10–10 is possible, without a second end-of-bout signal. The scoreboard never declares a winner.
+- Undo takes back the most recent point. It can be repeated back to 0–0, gives no signal and does not change the bout timer. Undoing the point that reached the point cap lets that fencer be awarded again; the bout timer stays paused until the referee resumes it.
 - A point log lists each point that still stands, with the fencer, the bout timer reading when it was awarded and the score after it.
 - Nothing leaves the device. The app has no internet permission.
 
