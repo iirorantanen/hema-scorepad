@@ -25,6 +25,7 @@ sealed interface RefereeAction {
     /**
      * Changes the bout length and the point cap. The change applies from the next new bout,
      * or to this bout when it has not begun: no points stand and the bout timer has not run.
+     * A change stored for the next new bout applies to this bout once undo leaves it not begun.
      * A bout length below 30 seconds or a point cap below 1 is raised to that lowest value.
      */
     data class ChangeSettings(val settings: Settings) : RefereeAction
@@ -90,25 +91,30 @@ data class BoutState(
                 if (reachesCap && !alreadyEnded) listOf(signal, Signal.END_OF_BOUT) else listOf(signal),
             )
         }
-        RefereeAction.Undo -> BoutUpdate(copy(log = log.dropLast(1)), emptyList())
+        RefereeAction.Undo -> {
+            val undone = copy(log = log.dropLast(1))
+            // Undoing the only point leaves a bout that has not begun, so a change stored during it applies now.
+            BoutUpdate(if (undone.begun) undone else undone.fresh(nextSettings), emptyList())
+        }
         RefereeAction.ToggleTimer ->
             BoutUpdate(copy(timerRunning = !timerRunning && settings.timerOn && timeRemaining > Duration.ZERO), emptyList())
         RefereeAction.SwapSides -> BoutUpdate(copy(sidesSwapped = !sidesSwapped), emptyList())
-        // A fresh state, so nothing else can carry over; only the settings and the side arrangement are kept.
-        RefereeAction.NewBout -> BoutUpdate(BoutState(nextSettings, sidesSwapped = sidesSwapped), emptyList())
+        RefereeAction.NewBout -> BoutUpdate(fresh(nextSettings), emptyList())
         is RefereeAction.ChangeSettings -> {
             val chosen = action.settings.copy(
                 // Longer than the last ten seconds, so the last exchange never starts with the bout.
                 boutLength = action.settings.boutLength.coerceAtLeast(30.seconds),
                 pointCap = action.settings.pointCap.coerceAtLeast(1),
             )
-            val begun = log.isNotEmpty() || timerRunning || timeRemaining != settings.boutLength
-            BoutUpdate(
-                if (begun) copy(nextSettings = chosen) else BoutState(chosen, sidesSwapped = sidesSwapped),
-                emptyList(),
-            )
+            BoutUpdate(if (begun) copy(nextSettings = chosen) else fresh(chosen), emptyList())
         }
     }
+
+    /** False while no points stand and the bout timer has not run. */
+    private val begun: Boolean get() = log.isNotEmpty() || timerRunning || timeRemaining != settings.boutLength
+
+    // A fresh state, so nothing else can carry over; only the side arrangement is kept.
+    private fun fresh(settings: Settings) = BoutState(settings, sidesSwapped = sidesSwapped)
 
     /** Time has passed. The bout never reads a clock; the caller says how much. */
     fun elapse(elapsed: Duration): BoutUpdate {

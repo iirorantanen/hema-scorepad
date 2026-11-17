@@ -666,4 +666,41 @@ class BoutTest {
         assertEquals(2.minutes + 59.seconds, changed.timeRemaining)
         assertEquals(90.seconds, changed.handle(RefereeAction.NewBout).state.timeRemaining)
     }
+
+    @Test
+    fun `undoing the only point after a settings change leaves a bout that has not begun, so the change applies to it`() {
+        val undone = BoutState().handle(RefereeAction.SwapSides).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds, pointCap = 5))).state
+            .handle(RefereeAction.Undo)
+
+        assertEquals(emptyList(), undone.signals)
+        assertEquals(90.seconds, undone.state.timeRemaining)
+        assertTrue(undone.state.sidesSwapped)
+
+        val fifth = undone.state.award(Fencer.RED, 4).handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), fifth.signals)
+    }
+
+    @Test
+    fun `undo after a settings change keeps the old settings while a point stands or the bout timer has run`() {
+        val changed = BoutState().award(Fencer.RED, 2)
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds))).state
+
+        val onePointStands = changed.handle(RefereeAction.Undo).state
+
+        assertEquals(1, onePointStands.score(Fencer.RED))
+        assertEquals(3.minutes, onePointStands.timeRemaining)
+
+        val timerHasRun = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(1.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds))).state
+            .handle(RefereeAction.Undo).state
+
+        assertEquals(0, timerHasRun.score(Fencer.RED))
+        assertEquals(2.minutes + 59.seconds, timerHasRun.timeRemaining)
+        assertEquals(90.seconds, timerHasRun.handle(RefereeAction.NewBout).state.timeRemaining)
+    }
 }
