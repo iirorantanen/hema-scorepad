@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         viewModelFactory {
             initializer {
                 ScoreboardViewModel(
-                    getPreferences(MODE_PRIVATE).settings(),
+                    SettingsStorage(getPreferences(MODE_PRIVATE)),
                     applicationContext.getSystemService(Vibrator::class.java),
                 )
             }
@@ -25,7 +25,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val preferences = getPreferences(MODE_PRIVATE)
         setContent {
             val bout = viewModel.bout
             val running = bout.timerRunning
@@ -39,12 +38,7 @@ class MainActivity : ComponentActivity() {
                     last = now
                 }
             }
-            Screen(bout) { action ->
-                val before = viewModel.bout.nextSettings
-                val after = viewModel.handle(action).nextSettings
-                // Saved as the referee changes them, so the next launch starts with them.
-                if (after != before) preferences.save(after)
-            }
+            Screen(bout, viewModel::handle)
         }
     }
 }

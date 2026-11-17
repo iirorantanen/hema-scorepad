@@ -2,11 +2,13 @@ package io.github.iirorantanen.hemascoreboard
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import io.github.iirorantanen.hemascoreboard.bout.Settings
+import io.github.iirorantanen.hemascoreboard.bout.SettingsStore
 
 private const val SETTINGS = "settings"
 
-/** The settings saved on this device, or the defaults on first launch. */
-fun SharedPreferences.settings(): Settings = getString(SETTINGS, null)?.let(Settings::fromText) ?: Settings()
+/** The Scoreboard's settings text, kept in this device's key-value storage. */
+class SettingsStorage(private val preferences: SharedPreferences) : SettingsStore {
+    override fun read(): String? = preferences.getString(SETTINGS, null)
 
-fun SharedPreferences.save(settings: Settings) = edit { putString(SETTINGS, settings.toText()) }
+    override fun write(text: String) = preferences.edit { putString(SETTINGS, text) }
+}
