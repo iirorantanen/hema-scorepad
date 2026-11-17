@@ -5,7 +5,7 @@ A single-bout scoreboard for plain HEMA sparring, operated by a referee on the s
 ## Language
 
 **Scoreboard**:
-What the referee operates: it keeps the bout, remembers the settings and gives signals. The Android app and the browser version are its two versions.
+What the referee operates: it keeps the bout, also between app launches, remembers the settings and gives signals. The Android app and the browser version are its two versions.
 _Avoid_: App, session
 
 **Bout**:
@@ -61,7 +61,7 @@ Something the scoreboard tells the referee without them looking at the display, 
 _Avoid_: Alert, notification, haptic
 
 **Bout timer**:
-A countdown from the bout length that keeps running while points are awarded, until the referee pauses it.
+A countdown from the bout length that keeps running while points are awarded, until the referee pauses it or the scoreboard leaves the foreground. A bout brought back at the next app launch has it paused.
 _Avoid_: Clock, stopwatch
 
 **Side arrangement**:

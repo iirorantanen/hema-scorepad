@@ -2,6 +2,7 @@ package io.github.iirorantanen.hemascoreboard
 
 import android.os.Bundle
 import android.os.Vibrator
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -16,7 +17,7 @@ class MainActivity : ComponentActivity() {
         viewModelFactory {
             initializer {
                 ScoreboardViewModel(
-                    SettingsStorage(getPreferences(MODE_PRIVATE)),
+                    BoutStorage(getPreferences(MODE_PRIVATE)),
                     applicationContext.getSystemService(Vibrator::class.java),
                 )
             }
@@ -25,6 +26,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // The referee watches the fencers, not the display: it must not dim or lock while the scoreboard is in front.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent {
             val bout = viewModel.bout
             val running = bout.timerRunning
@@ -40,5 +43,11 @@ class MainActivity : ComponentActivity() {
             }
             Screen(bout, viewModel::handle)
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // A rotation also stops the activity, and must not pause the bout timer.
+        if (!isChangingConfigurations) viewModel.leaveForeground()
     }
 }

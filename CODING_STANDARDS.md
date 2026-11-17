@@ -4,11 +4,11 @@ Read at review. Every rule here is a judgement call; a rule a script can decide 
 
 ## The bout module owns the rules
 
-Scoring and timing rules live in the `bout` module. Its Scoreboard keeps the current bout, saves the settings to a settings store as the referee changes them, and passes each signal on as the bout gives it. The settings store holds text only: reading it, the defaults and the lowest values are rules. The Screen draws the bout state the Scoreboard holds and turns taps into referee actions. The activity forwards those referee actions and the time between frames to the Scoreboard. Device effects turn signals into vibration.
+Scoring and timing rules live in the `bout` module. Its Scoreboard keeps the current bout, saves it with its settings to a bout store as it changes, brings it back paused at the next launch, pauses the bout timer when the scoreboard leaves the foreground, and passes each signal on as the bout gives it. The bout store holds text only: reading it, the defaults and the lowest values are rules. The Screen draws the bout state the Scoreboard holds and turns taps into referee actions. The activity forwards those referee actions and the time between frames to the Scoreboard, tells it when the scoreboard leaves the foreground, and keeps the screen awake. Device effects turn signals into vibration.
 
 ## Tests state referee-visible behaviour
 
-A test gives referee actions and elapsed time, then asserts on what a referee could observe: the score, the point log, the bout timer reading, whether the bout timer is running, and the signals given. Assertions go through the public bout state. Each rule that reads the score, the point log or the bout timer has a test where undo follows the action that triggers it.
+A test gives referee actions and elapsed time, plus leaving the foreground or a next launch where the rule is about one, then asserts on what a referee could observe: the score, the point log, the bout timer reading, whether the bout timer is running, and the signals given. Assertions go through the public bout state. Each rule that reads the score, the point log or the bout timer has a test where undo follows the action that triggers it.
 
 ## Domain concepts carry their glossary name
 

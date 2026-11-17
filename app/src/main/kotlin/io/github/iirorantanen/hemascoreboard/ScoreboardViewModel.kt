@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.iirorantanen.hemascoreboard.bout.BoutStore
 import io.github.iirorantanen.hemascoreboard.bout.RefereeAction
 import io.github.iirorantanen.hemascoreboard.bout.Scoreboard
-import io.github.iirorantanen.hemascoreboard.bout.SettingsStore
 import io.github.iirorantanen.hemascoreboard.bout.Signal
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ import kotlin.time.Duration
  * Holds the Scoreboard and the signal player, so the bout and the signals still waiting to play survive rotation.
  * This outlives the activity: the vibrator must come from the application context, and the store must not hold the activity.
  */
-class ScoreboardViewModel(store: SettingsStore, vibrator: Vibrator?) : ViewModel() {
+class ScoreboardViewModel(store: BoutStore, vibrator: Vibrator?) : ViewModel() {
     // Queued, so signals given close together play one after another.
     private val signals = Channel<Signal>(Channel.UNLIMITED)
     private val scoreboard = Scoreboard(store) { signals.trySend(it) }
@@ -33,6 +33,10 @@ class ScoreboardViewModel(store: SettingsStore, vibrator: Vibrator?) : ViewModel
 
     fun handle(action: RefereeAction) {
         bout = scoreboard.handle(action)
+    }
+
+    fun leaveForeground() {
+        bout = scoreboard.leaveForeground()
     }
 
     fun elapse(elapsed: Duration) {

@@ -2,12 +2,15 @@ package io.github.iirorantanen.hemascoreboard.bout
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-/** The settings store of a device that forgets nothing between launches: a second Scoreboard on it is the next launch. */
-private class InMemorySettingsStore(private var text: String? = null) : SettingsStore {
+/** The bout store of a device that forgets nothing between launches: a second Scoreboard on it is the next launch. */
+private class InMemoryBoutStore(private var text: String? = null) : BoutStore {
     override fun read(): String? = text
     override fun write(text: String) {
         this.text = text
@@ -19,7 +22,7 @@ private val defaultSettings = Settings(boutLength = 3.minutes, timerOn = true, p
 class ScoreboardTest {
     @Test
     fun `a settings change is in effect at the next launch`() {
-        val store = InMemorySettingsStore()
+        val store = InMemoryBoutStore()
         Scoreboard(store) {}.handle(RefereeAction.ChangeSettings(Settings(boutLength = 2.minutes, pointCap = 5)))
 
         val nextLaunch = Scoreboard(store) {}
@@ -29,44 +32,47 @@ class ScoreboardTest {
     }
 
     @Test
-    fun `a settings change during a bout applies from the next new bout and is remembered at the next launch`() {
-        val store = InMemorySettingsStore()
+    fun `a settings change during a bout applies from the next new bout, also when that bout starts after the next launch`() {
+        val store = InMemoryBoutStore()
         val scoreboard = Scoreboard(store) {}
         scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
 
         val during = scoreboard.handle(RefereeAction.ChangeSettings(Settings(pointCap = 5)))
         val nextLaunch = Scoreboard(store) {}
-        val nextBout = scoreboard.handle(RefereeAction.NewBout)
+        val broughtBack = nextLaunch.bout
+        val nextBout = nextLaunch.handle(RefereeAction.NewBout)
 
         assertEquals(defaultSettings, during.settings)
+        assertEquals(defaultSettings, broughtBack.settings)
+        assertEquals(1, broughtBack.score(Fencer.RED))
         assertEquals(Settings(pointCap = 5), nextBout.settings)
-        assertEquals(Settings(pointCap = 5), nextLaunch.bout.settings)
+        assertEquals(0, nextBout.score(Fencer.RED))
     }
 
     @Test
     fun `nothing stored starts with the default settings`() {
-        assertEquals(defaultSettings, Scoreboard(InMemorySettingsStore()) {}.bout.settings)
+        assertEquals(defaultSettings, Scoreboard(InMemoryBoutStore()) {}.bout.settings)
     }
 
     @Test
     fun `unreadable stored text starts with the default settings`() {
-        assertEquals(defaultSettings, Scoreboard(InMemorySettingsStore("not settings")) {}.bout.settings)
+        assertEquals(defaultSettings, Scoreboard(InMemoryBoutStore("not settings")) {}.bout.settings)
     }
 
     @Test
-    fun `a stored bout length or point cap below its lowest value is raised to it, so points can be awarded`() {
-        val store = InMemorySettingsStore(Settings(boutLength = 5.seconds, pointCap = 0).toText())
+    fun `a stored bout with a bout length or point cap below its lowest value is not brought back, so points can be awarded`() {
+        val tooShort = Scoreboard(InMemoryBoutStore(BoutState(Settings(boutLength = 5.seconds)).toText())) {}
+        val noPoints = Scoreboard(InMemoryBoutStore(BoutState(Settings(pointCap = 0)).toText())) {}
 
-        val scoreboard = Scoreboard(store) {}
-
-        assertEquals(Settings(boutLength = 30.seconds, pointCap = 1), scoreboard.bout.settings)
-        assertEquals(30.seconds, scoreboard.bout.timeRemaining)
-        assertEquals(1, scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED)).score(Fencer.RED))
+        assertEquals(defaultSettings, tooShort.bout.settings)
+        assertEquals(3.minutes, tooShort.bout.timeRemaining)
+        assertEquals(defaultSettings, noPoints.bout.settings)
+        assertEquals(1, noPoints.handle(RefereeAction.AwardPoint(Fencer.RED)).score(Fencer.RED))
     }
 
     @Test
     fun `undo after a settings change while the bout has not begun keeps the change, now and at the next launch`() {
-        val store = InMemorySettingsStore()
+        val store = InMemoryBoutStore()
         val scoreboard = Scoreboard(store) {}
         scoreboard.handle(RefereeAction.ChangeSettings(Settings(boutLength = 2.minutes)))
 
@@ -77,8 +83,139 @@ class ScoreboardTest {
     }
 
     @Test
+    fun `leaving the foreground pauses the bout timer, so the time away is not counted`() {
+        val scoreboard = Scoreboard(InMemoryBoutStore()) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(10.seconds)
+
+        val away = scoreboard.leaveForeground()
+        val back = scoreboard.elapse(5.minutes)
+
+        assertFalse(away.timerRunning)
+        assertEquals(2.minutes + 50.seconds, back.timeRemaining)
+    }
+
+    @Test
+    fun `undo after leaving the foreground takes back the point and leaves the bout timer paused at its reading`() {
+        val scoreboard = Scoreboard(InMemoryBoutStore()) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(10.seconds)
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
+        scoreboard.leaveForeground()
+
+        val undone = scoreboard.handle(RefereeAction.Undo)
+
+        assertEquals(0, undone.score(Fencer.RED))
+        assertFalse(undone.timerRunning)
+        assertEquals(2.minutes + 50.seconds, undone.timeRemaining)
+    }
+
+    @Test
+    fun `a bout left running comes back at the next launch paused, with its score, point log, bout timer reading, last-exchange state and side arrangement`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.ChangeSettings(Settings(boutLength = 1.minutes)))
+        scoreboard.handle(RefereeAction.SwapSides)
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(20.seconds)
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
+        scoreboard.elapse(32.seconds)
+        scoreboard.leaveForeground()
+
+        val back = Scoreboard(store) {}.bout
+
+        assertEquals(1, back.score(Fencer.RED))
+        assertEquals(0, back.score(Fencer.BLUE))
+        assertEquals(listOf(LoggedPoint(Fencer.RED, 40.seconds, 1, 0)), back.log)
+        assertEquals(8.seconds, back.timeRemaining)
+        assertTrue(back.inLastExchange)
+        assertTrue(back.sidesSwapped)
+        assertFalse(back.timerRunning)
+    }
+
+    @Test
+    fun `a bout whose bout timer ran out comes back at the next launch at zero`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(4.minutes)
+
+        val back = Scoreboard(store) {}.bout
+
+        assertEquals(Duration.ZERO, back.timeRemaining)
+        assertTrue(back.inLastExchange)
+    }
+
+    @Test
+    fun `a scoreboard killed while the bout timer runs brings the bout back paused, with its score and a bout timer reading less than a second behind`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(50.seconds)
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+        repeat(54) { scoreboard.elapse(100.milliseconds) }
+        assertEquals(2.minutes + 4.6.seconds, scoreboard.bout.timeRemaining)
+
+        val back = Scoreboard(store) {}.bout
+
+        assertEquals(1, back.score(Fencer.BLUE))
+        assertEquals(listOf(LoggedPoint(Fencer.BLUE, 2.minutes + 10.seconds, 0, 1)), back.log)
+        assertTrue(back.timeRemaining >= 2.minutes + 4.6.seconds)
+        assertTrue(back.timeRemaining < 2.minutes + 5.6.seconds)
+        assertFalse(back.timerRunning)
+    }
+
+    @Test
+    fun `a bout brought back gives no signal, and does not repeat the last-exchange or end-of-bout signal`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.ChangeSettings(Settings(boutLength = 1.minutes, pointCap = 1)))
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(51.seconds)
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        val signals = mutableListOf<Signal>()
+        val nextLaunch = Scoreboard(store) { signals += it }
+        assertEquals(emptyList(), signals)
+
+        nextLaunch.handle(RefereeAction.ToggleTimer)
+        val later = nextLaunch.elapse(1.seconds)
+        nextLaunch.handle(RefereeAction.AwardPoint(Fencer.RED))
+        nextLaunch.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        assertEquals(8.seconds, later.timeRemaining)
+        assertEquals(listOf(Signal.BLUE_POINT), signals)
+    }
+
+    @Test
+    fun `undo at the next launch takes back the last point of the bout brought back`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        val nextLaunch = Scoreboard(store) {}
+        val undone = nextLaunch.handle(RefereeAction.Undo)
+
+        assertEquals(listOf(LoggedPoint(Fencer.RED, 3.minutes, 1, 0)), undone.log)
+        assertEquals(0, Scoreboard(store) {}.bout.score(Fencer.BLUE))
+    }
+
+    @Test
+    fun `a new bout started after the bout timer ran is still new at the next launch`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(30.seconds)
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.handle(RefereeAction.NewBout)
+
+        assertEquals(3.minutes, Scoreboard(store) {}.bout.timeRemaining)
+    }
+
+    @Test
     fun `the scoreboard keeps the bout as the referee acts`() {
-        val scoreboard = Scoreboard(InMemorySettingsStore()) {}
+        val scoreboard = Scoreboard(InMemoryBoutStore()) {}
 
         val bout = scoreboard.handle(RefereeAction.AwardPoint(Fencer.BLUE))
 
@@ -89,7 +226,7 @@ class ScoreboardTest {
     @Test
     fun `a point that reaches the point cap gives its point signal, then the end-of-bout signal`() {
         val signals = mutableListOf<Signal>()
-        val scoreboard = Scoreboard(InMemorySettingsStore()) { signals += it }
+        val scoreboard = Scoreboard(InMemoryBoutStore()) { signals += it }
         scoreboard.handle(RefereeAction.ChangeSettings(Settings(pointCap = 1)))
 
         val bout = scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
@@ -101,7 +238,7 @@ class ScoreboardTest {
     @Test
     fun `elapsed time into the last ten seconds gives the last-exchange signal once, across a pause and resume`() {
         val signals = mutableListOf<Signal>()
-        val scoreboard = Scoreboard(InMemorySettingsStore()) { signals += it }
+        val scoreboard = Scoreboard(InMemoryBoutStore()) { signals += it }
         scoreboard.handle(RefereeAction.ChangeSettings(Settings(boutLength = 1.minutes)))
 
         scoreboard.handle(RefereeAction.ToggleTimer)

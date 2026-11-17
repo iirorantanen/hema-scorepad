@@ -504,19 +504,11 @@ class BoutTest {
     }
 
     @Test
-    fun `settings written out and read back are the same`() {
-        val settings = Settings(boutLength = 90.seconds, timerOn = false, pointCap = 5, pointCapOn = false)
-
-        assertEquals(settings, Settings.fromText(settings.toText()))
-    }
-
-    @Test
-    fun `text that is not a written-out bout or settings reads back as nothing`() {
+    fun `text that is not a written-out bout reads back as nothing`() {
         val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state.toText()
 
-        assertNull(Settings.fromText(""))
-        assertNull(Settings.fromText("three minutes"))
         assertNull(BoutState.fromText(""))
+        assertNull(BoutState.fromText("three minutes"))
         assertNull(BoutState.fromText(Settings().toText()))
         assertNull(BoutState.fromText(bout.replace("RED", "GREEN")))
         assertNull(BoutState.fromText(bout.replace("true", "yes")))

@@ -41,19 +41,20 @@ data class Settings(
     val pointCap: Int = 10,
     val pointCapOn: Boolean = true,
 ) {
-    /** The settings written out as text, for the device to store. [fromText] reads it back. */
-    fun toText(): String = "${boutLength.inWholeNanoseconds} $timerOn $pointCap $pointCapOn"
-
-    companion object {
-        /** The settings [toText] wrote, or null when the text is not settings this version wrote. */
-        fun fromText(text: String): Settings? = readOrNull { readSettings(text) }
-    }
+    /** The settings written out as one line of a written-out bout. */
+    internal fun toText(): String = "${boutLength.inWholeNanoseconds} $timerOn $pointCap $pointCapOn"
 }
 
 private fun readSettings(text: String): Settings {
     val (boutLength, timerOn, pointCap, pointCapOn) = text.split(' ')
     return Settings(boutLength.toLong().nanoseconds, timerOn.toBooleanStrict(), pointCap.toInt(), pointCapOn.toBooleanStrict())
+        // No version writes values below the lowest, and a point cap of 0 would block every point.
+        .also { require(it.boutLength >= LOWEST_BOUT_LENGTH && it.pointCap >= LOWEST_POINT_CAP) }
 }
+
+// Longer than the last ten seconds, so the last exchange never starts with the bout.
+private val LOWEST_BOUT_LENGTH = 30.seconds
+private const val LOWEST_POINT_CAP = 1
 
 // Stored text can come from another version or be damaged: every conversion then fails with a RuntimeException.
 private inline fun <T> readOrNull(read: () -> T): T? = try {
@@ -149,9 +150,8 @@ data class BoutState(
         RefereeAction.NewBout -> BoutUpdate(fresh(nextSettings), emptyList())
         is RefereeAction.ChangeSettings -> {
             val chosen = action.settings.copy(
-                // Longer than the last ten seconds, so the last exchange never starts with the bout.
-                boutLength = action.settings.boutLength.coerceAtLeast(30.seconds),
-                pointCap = action.settings.pointCap.coerceAtLeast(1),
+                boutLength = action.settings.boutLength.coerceAtLeast(LOWEST_BOUT_LENGTH),
+                pointCap = action.settings.pointCap.coerceAtLeast(LOWEST_POINT_CAP),
             )
             BoutUpdate(if (begun) copy(nextSettings = chosen) else fresh(chosen), emptyList())
         }
