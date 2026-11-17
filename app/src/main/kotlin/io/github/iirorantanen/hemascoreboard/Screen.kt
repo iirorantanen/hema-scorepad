@@ -70,7 +70,7 @@ private fun Duration.reading(): String {
 
 /** Draws the bout and turns taps into referee actions. Holds no scoring rules. */
 @Composable
-fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
+fun Screen(bout: BoutState, onAction: (RefereeAction) -> Unit) {
     var showLog by rememberSaveable { mutableStateOf(false) }
     var showNewBoutConfirmation by rememberSaveable { mutableStateOf(false) }
     var showSettings by rememberSaveable { mutableStateOf(false) }

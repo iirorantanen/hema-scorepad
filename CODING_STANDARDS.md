@@ -4,7 +4,7 @@ Read at review. Every rule here is a judgement call; a rule a script can decide 
 
 ## The bout module owns the rules
 
-Scoring and timing rules live in the `bout` module. The Screen draws the bout state and turns taps into referee actions. Device effects turn signals into vibration.
+Scoring and timing rules live in the `bout` module. Its Scoreboard keeps the current bout and passes each signal on as the bout gives it. The Screen draws the bout state the Scoreboard holds and turns taps into referee actions. The activity forwards those referee actions and the time between frames to the Scoreboard. Device effects turn signals into vibration.
 
 ## Tests state referee-visible behaviour
 

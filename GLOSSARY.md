@@ -4,6 +4,10 @@ A single-bout scoreboard for plain HEMA sparring, operated by a referee on the s
 
 ## Language
 
+**Scoreboard**:
+What the referee operates: it keeps the bout, remembers the settings and gives signals. The Android app and the browser version are its two versions.
+_Avoid_: App, session
+
 **Bout**:
 One sparring match between two fencers, with its own score and bout timer. It ends when a fencer reaches the point cap or when the last exchange finishes, whichever comes first.
 _Avoid_: Match, fight, round
