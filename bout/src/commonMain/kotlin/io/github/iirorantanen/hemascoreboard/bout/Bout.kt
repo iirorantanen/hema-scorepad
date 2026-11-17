@@ -1,8 +1,8 @@
 package io.github.iirorantanen.hemascoreboard.bout
 
-import java.io.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 
 enum class Fencer { RED, BLUE }
@@ -40,14 +40,33 @@ data class Settings(
     val timerOn: Boolean = true,
     val pointCap: Int = 10,
     val pointCapOn: Boolean = true,
-) : Serializable
+) {
+    /** The settings written out as text, for the device to store. [fromText] reads it back. */
+    fun toText(): String = "${boutLength.inWholeNanoseconds} $timerOn $pointCap $pointCapOn"
+
+    companion object {
+        /** The settings [toText] wrote, or null when the text is not settings this version wrote. */
+        fun fromText(text: String): Settings? = readOrNull { readSettings(text) }
+    }
+}
+
+private fun readSettings(text: String): Settings {
+    val (boutLength, timerOn, pointCap, pointCapOn) = text.split(' ')
+    return Settings(boutLength.toLong().nanoseconds, timerOn.toBooleanStrict(), pointCap.toInt(), pointCapOn.toBooleanStrict())
+}
+
+// Stored text can come from another version or be damaged: every conversion then fails with a RuntimeException.
+private inline fun <T> readOrNull(read: () -> T): T? = try {
+    read()
+} catch (e: RuntimeException) {
+    null
+}
 
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
 /** One awarded point: who got it, the bout timer reading at that moment, and the score after it. */
-data class LoggedPoint(val fencer: Fencer, val timeRemaining: Duration, val red: Int, val blue: Int) : Serializable
+data class LoggedPoint(val fencer: Fencer, val timeRemaining: Duration, val red: Int, val blue: Int)
 
-// Serializable so the screen can keep the bout across rotation without knowing its fields.
 data class BoutState(
     /** The settings this bout started with. They hold for the whole bout. */
     val settings: Settings = Settings(),
@@ -61,7 +80,35 @@ data class BoutState(
     val inLastExchange: Boolean = false,
     /** The side arrangement: whether Red and Blue have swapped sides of the display. */
     val sidesSwapped: Boolean = false,
-) : Serializable {
+) {
+    /**
+     * The bout written out as text, for the device to store. [fromText] reads it back.
+     * Whether the bout timer is running is left out: a bout read back is paused.
+     */
+    fun toText(): String = (
+        listOf(settings.toText(), nextSettings.toText(), "${timeRemaining.inWholeNanoseconds} $inLastExchange $sidesSwapped") +
+            log.map { "${it.fencer} ${it.timeRemaining.inWholeNanoseconds} ${it.red} ${it.blue}" }
+        ).joinToString("\n")
+
+    companion object {
+        /** The bout [toText] wrote, paused, or null when the text is not a bout this version wrote. */
+        fun fromText(text: String): BoutState? = readOrNull {
+            val lines = text.lines()
+            val (timeRemaining, inLastExchange, sidesSwapped) = lines[2].split(' ')
+            BoutState(
+                settings = readSettings(lines[0]),
+                nextSettings = readSettings(lines[1]),
+                log = lines.drop(3).map { line ->
+                    val (fencer, time, red, blue) = line.split(' ')
+                    LoggedPoint(Fencer.valueOf(fencer), time.toLong().nanoseconds, red.toInt(), blue.toInt())
+                },
+                timeRemaining = timeRemaining.toLong().nanoseconds,
+                inLastExchange = inLastExchange.toBooleanStrict(),
+                sidesSwapped = sidesSwapped.toBooleanStrict(),
+            )
+        }
+    }
+
     fun score(fencer: Fencer): Int = when (fencer) {
         Fencer.RED -> log.lastOrNull()?.red ?: 0
         Fencer.BLUE -> log.lastOrNull()?.blue ?: 0

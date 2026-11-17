@@ -8,14 +8,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import io.github.iirorantanen.hemascoreboard.bout.BoutState
 import io.github.iirorantanen.hemascoreboard.bout.BoutUpdate
+import io.github.iirorantanen.hemascoreboard.bout.RefereeAction
 import io.github.iirorantanen.hemascoreboard.bout.Signal
 import kotlinx.coroutines.channels.Channel
 import kotlin.time.Duration.Companion.nanoseconds
+
+// The bout as the bout module's text. The text reads back paused, so a bout timer that was running is started again.
+private val boutSaver = listSaver<BoutState, Any>(
+    save = { listOf(it.toText(), it.timerRunning) },
+    restore = { (text, timerRunning) ->
+        BoutState.fromText(text as String)?.let { if (timerRunning as Boolean) it.handle(RefereeAction.ToggleTimer).state else it }
+    },
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +34,7 @@ class MainActivity : ComponentActivity() {
         val preferences = getPreferences(MODE_PRIVATE)
         setContent {
             // Saveable, so the bout survives rotation.
-            var bout by rememberSaveable { mutableStateOf(BoutState(preferences.settings())) }
+            var bout by rememberSaveable(stateSaver = boutSaver) { mutableStateOf(BoutState(preferences.settings())) }
             // Queued, so signals given close together play one after another.
             val signals = remember { Channel<Signal>(Channel.UNLIMITED) }
             LaunchedEffect(Unit) { vibrator?.play(signals) }

@@ -26,16 +26,16 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 
 ## Development
 
-Enable the pre-commit hook once per clone. It runs `./gradlew check` (the unit tests and Android lint) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
+Enable the pre-commit hook once per clone. It runs `./gradlew check` (the bout tests, on the JVM and in JavaScript, and Android lint) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Run the unit tests:
+Run the bout tests on the JVM and in JavaScript. Gradle downloads the Node.js that runs the JavaScript tests:
 
 ```bash
-./gradlew test
+./gradlew :bout:allTests
 ```
 
 Build the app and install it on a connected device or emulator:

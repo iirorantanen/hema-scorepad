@@ -1,11 +1,10 @@
 package io.github.iirorantanen.hemascoreboard.bout
 
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -479,18 +478,48 @@ class BoutTest {
         assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), tenth.signals)
     }
 
-    private fun BoutState.savedAndRestored(): Any {
-        val bytes = ByteArrayOutputStream().also { ObjectOutputStream(it).writeObject(this) }.toByteArray()
-        return ObjectInputStream(bytes.inputStream()).readObject()
+    @Test
+    fun `a bout written out and read back has the same score, point log, bout timer reading, last-exchange state and side arrangement, and is paused`() {
+        val bout = BoutState().handle(RefereeAction.SwapSides).state
+            .handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.5.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.Undo).state
+        assertTrue(bout.timerRunning)
+
+        val readBack = assertNotNull(BoutState.fromText(bout.toText()))
+
+        assertEquals(1, readBack.score(Fencer.RED))
+        assertEquals(1, readBack.score(Fencer.BLUE))
+        assertEquals(
+            listOf(LoggedPoint(Fencer.RED, 9.5.seconds, 1, 0), LoggedPoint(Fencer.BLUE, 9.5.seconds, 1, 1)),
+            readBack.log,
+        )
+        assertEquals(9.5.seconds, readBack.timeRemaining)
+        assertTrue(readBack.inLastExchange)
+        assertTrue(readBack.sidesSwapped)
+        assertFalse(readBack.timerRunning)
     }
 
     @Test
-    fun `a bout with logged points survives being saved and restored`() {
-        val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
-            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
-            .handle(RefereeAction.Undo).state
+    fun `settings written out and read back are the same`() {
+        val settings = Settings(boutLength = 90.seconds, timerOn = false, pointCap = 5, pointCapOn = false)
 
-        assertEquals(bout, bout.savedAndRestored())
+        assertEquals(settings, Settings.fromText(settings.toText()))
+    }
+
+    @Test
+    fun `text that is not a written-out bout or settings reads back as nothing`() {
+        val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state.toText()
+
+        assertNull(Settings.fromText(""))
+        assertNull(Settings.fromText("three minutes"))
+        assertNull(BoutState.fromText(""))
+        assertNull(BoutState.fromText(Settings().toText()))
+        assertNull(BoutState.fromText(bout.replace("RED", "GREEN")))
+        assertNull(BoutState.fromText(bout.replace("true", "yes")))
     }
 
     @Test
@@ -610,12 +639,15 @@ class BoutTest {
     }
 
     @Test
-    fun `a bout with changed settings survives being saved and restored`() {
+    fun `a bout with changed settings written out and read back keeps its settings and the change for the next new bout`() {
         val bout = BoutState(Settings(boutLength = 90.seconds, timerOn = false))
             .handle(RefereeAction.AwardPoint(Fencer.RED)).state
             .handle(RefereeAction.ChangeSettings(Settings(pointCap = 5, pointCapOn = false))).state
 
-        assertEquals(bout, bout.savedAndRestored())
+        val readBack = assertNotNull(BoutState.fromText(bout.toText()))
+
+        assertEquals(Settings(boutLength = 90.seconds, timerOn = false), readBack.settings)
+        assertEquals(Settings(pointCap = 5, pointCapOn = false), readBack.nextSettings)
     }
 
     @Test
