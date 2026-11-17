@@ -12,6 +12,8 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 - The point cap is 10. When a fencer reaches it, the scoreboard gives three medium vibrations after the point's own signal and the bout timer stops. Taps for that fencer are then ignored. The other fencer can still be awarded points up to the point cap, so 10–10 is possible, without a second end-of-bout signal. The scoreboard never declares a winner.
 - Undo takes back the most recent point. It can be repeated back to 0–0, gives no signal and does not change the bout timer. Undoing the point that reached the point cap lets that fencer be awarded again; the bout timer stays paused until the referee resumes it.
 - A point log lists each point that still stands, with the fencer, the bout timer reading when it was awarded and the score after it.
+- Swap sides exchanges which half shows Red and which shows Blue, so the display matches where the fencers stand. Scores, the point log and the bout timer are untouched, so it is safe mid-bout.
+- The final score stays on the display until the referee starts a new bout. New bout asks for confirmation, then clears the score, the point log and "Last exchange", and returns the bout timer to a paused 3:00. The side arrangement is kept.
 - Nothing leaves the device. The app has no internet permission.
 
 ## Install

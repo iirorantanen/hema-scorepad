@@ -68,12 +68,14 @@ private fun Duration.reading(): String {
 @Composable
 fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
     var showLog by rememberSaveable { mutableStateOf(false) }
+    var showNewBoutConfirmation by rememberSaveable { mutableStateOf(false) }
+    val (left, right) = if (bout.sidesSwapped) Fencer.BLUE to Fencer.RED else Fencer.RED to Fencer.BLUE
     Column(Modifier.fillMaxSize().background(Color.Black)) {
         // The controls already sit inside the bottom inset, so the halves must not pad for it again.
         Row(Modifier.weight(1f).consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))) {
-            Half(Fencer.RED, bout.score(Fencer.RED), onAction)
+            Half(left, bout.score(left), onAction)
             Box(Modifier.width(2.dp).fillMaxHeight().background(Color.DarkGray))
-            Half(Fencer.BLUE, bout.score(Fencer.BLUE), onAction)
+            Half(right, bout.score(right), onAction)
         }
         // Below the halves so a thumb reaches it one-handed, above the controls so it clears the home-swipe edge.
         Timer(bout.timeRemaining, bout.timerRunning, bout.inLastExchange, onAction)
@@ -90,9 +92,41 @@ fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
         ) {
             Control("Undo", "Undo the most recent point") { onAction(RefereeAction.Undo) }
             Control("Log", "Show the point log") { showLog = true }
+            Control("Swap", "Swap sides") { onAction(RefereeAction.SwapSides) }
+            Control("New bout", "Start a new bout") { showNewBoutConfirmation = true }
         }
     }
     if (showLog) PointLog(bout.log) { showLog = false }
+    if (showNewBoutConfirmation) {
+        ConfirmNewBout(
+            onConfirm = {
+                showNewBoutConfirmation = false
+                onAction(RefereeAction.NewBout)
+            },
+            onDismiss = { showNewBoutConfirmation = false },
+        )
+    }
+}
+
+private val dialogTitle = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+/** Asks before a new bout clears the current one. A tap outside or back cancels. */
+@Composable
+private fun ConfirmNewBout(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(Modifier.fillMaxWidth().background(Color(0xFF202020)).padding(16.dp)) {
+            BasicText(text = "Start a new bout?", style = dialogTitle)
+            BasicText(
+                text = "This clears the score and the point log, and resets the bout timer.",
+                modifier = Modifier.padding(top = 12.dp),
+                style = TextStyle(color = Color.White, fontSize = 18.sp),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Control("Cancel", "Keep the current bout", onDismiss)
+                Control("New bout", "Clear the current bout", onConfirm)
+            }
+        }
+    }
 }
 
 @Composable
@@ -100,9 +134,10 @@ private fun Control(label: String, onClickLabel: String, onClick: () -> Unit) {
     BasicText(
         text = label,
         // 18sp text plus the padding keeps the tap target at about 48dp.
+        // Narrow padding so four controls fit across a 320dp phone at the default font size.
         modifier = Modifier
             .clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(12.dp),
         style = TextStyle(color = Color.LightGray, fontSize = 18.sp),
     )
 }
@@ -121,7 +156,7 @@ private fun PointLog(log: List<LoggedPoint>, onDismiss: () -> Unit) {
             val entry = TextStyle(color = Color.White, fontSize = 18.sp, fontFeatureSettings = "tnum")
             BasicText(
                 text = if (log.isEmpty()) "No points yet" else "Point log",
-                style = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                style = dialogTitle,
             )
             log.forEach { point ->
                 // Two short texts rather than one line, which would wrap on a narrow phone.

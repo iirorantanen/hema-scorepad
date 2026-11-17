@@ -402,6 +402,84 @@ class BoutTest {
     }
 
     @Test
+    fun `swap sides changes only the side arrangement, and a second swap restores it`() {
+        val bout = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+
+        assertFalse(bout.sidesSwapped)
+
+        val swapped = bout.handle(RefereeAction.SwapSides)
+
+        assertTrue(swapped.state.sidesSwapped)
+        assertEquals(bout, swapped.state.copy(sidesSwapped = false))
+        assertEquals(emptyList(), swapped.signals)
+
+        val back = swapped.state.handle(RefereeAction.SwapSides).state
+
+        assertEquals(bout, back)
+    }
+
+    @Test
+    fun `a point awarded after swap sides goes to the fencer it was awarded to`() {
+        val bout = BoutState().handle(RefereeAction.SwapSides).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+
+        assertEquals(0, bout.score(Fencer.RED))
+        assertEquals(1, bout.score(Fencer.BLUE))
+        assertTrue(bout.sidesSwapped)
+    }
+
+    @Test
+    fun `a new bout clears the score, the point log, the bout timer and the last exchange`() {
+        val update = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .handle(RefereeAction.NewBout)
+
+        assertEquals(0, update.state.score(Fencer.RED))
+        assertEquals(0, update.state.score(Fencer.BLUE))
+        assertEquals(emptyList(), update.state.log)
+        assertEquals(3.minutes, update.state.timeRemaining)
+        assertFalse(update.state.timerRunning)
+        assertFalse(update.state.inLastExchange)
+        assertEquals(emptyList(), update.signals)
+    }
+
+    @Test
+    fun `a new bout keeps the side arrangement`() {
+        val swapped = BoutState().handle(RefereeAction.SwapSides).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.NewBout).state
+
+        assertTrue(swapped.sidesSwapped)
+        assertEquals(0, swapped.score(Fencer.RED))
+
+        val unswapped = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.NewBout).state
+
+        assertFalse(unswapped.sidesSwapped)
+    }
+
+    @Test
+    fun `a new bout gives its own last exchange and end of bout signals`() {
+        val next = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds).state
+            .award(Fencer.RED, 10)
+            .handle(RefereeAction.NewBout).state
+
+        val atTen = next.handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds)
+
+        assertEquals(listOf(Signal.LAST_EXCHANGE), atTen.signals)
+
+        val tenth = atTen.state.award(Fencer.RED, 9).handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), tenth.signals)
+    }
+
+    @Test
     fun `a bout with logged points survives being saved and restored`() {
         val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
             .handle(RefereeAction.AwardPoint(Fencer.BLUE)).state

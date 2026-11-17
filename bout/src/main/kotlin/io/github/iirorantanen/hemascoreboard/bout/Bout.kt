@@ -15,6 +15,12 @@ sealed interface RefereeAction {
 
     /** A tap on the bout timer: starts it, pauses it or resumes it. */
     data object ToggleTimer : RefereeAction
+
+    /** Exchanges which side of the display Red and Blue appear on. */
+    data object SwapSides : RefereeAction
+
+    /** Clears the score, the point log and the bout timer. The side arrangement is kept. */
+    data object NewBout : RefereeAction
 }
 
 /** Something the referee should be told about, without looking at the screen. */
@@ -36,6 +42,8 @@ data class BoutState(
     val timerRunning: Boolean = false,
     /** Set when ten seconds remain, and kept for the rest of the bout. */
     val inLastExchange: Boolean = false,
+    /** The side arrangement: whether Red and Blue have swapped sides of the display. */
+    val sidesSwapped: Boolean = false,
 ) : Serializable {
     fun score(fencer: Fencer): Int = when (fencer) {
         Fencer.RED -> log.lastOrNull()?.red ?: 0
@@ -66,6 +74,9 @@ data class BoutState(
         RefereeAction.Undo -> BoutUpdate(copy(log = log.dropLast(1)), emptyList())
         RefereeAction.ToggleTimer ->
             BoutUpdate(copy(timerRunning = !timerRunning && timeRemaining > Duration.ZERO), emptyList())
+        RefereeAction.SwapSides -> BoutUpdate(copy(sidesSwapped = !sidesSwapped), emptyList())
+        // A fresh state, so nothing else can carry over; only the side arrangement is kept.
+        RefereeAction.NewBout -> BoutUpdate(BoutState(sidesSwapped = sidesSwapped), emptyList())
     }
 
     /** Time has passed. The bout never reads a clock; the caller says how much. */
