@@ -17,12 +17,16 @@ The final exchange of a bout, called by the referee when ten seconds remain on t
 _Avoid_: Final pass, overtime, sudden death
 
 **Bout length**:
-The time the bout timer counts down from, chosen by the referee before the bout.
+The time the bout timer counts down from, chosen by the referee before the bout. It is at least 30 seconds. With the bout length switched off, the bout has no bout timer and no last exchange is signalled.
 _Avoid_: Duration, time limit
 
 **Point cap**:
-The score at which a bout ends, chosen by the referee before the bout. No fencer can be awarded a point above it. After one fencer reaches it, the other can still be awarded points up to it, and a bout where both reach it is a tie.
+The score at which a bout ends, chosen by the referee before the bout. No fencer can be awarded a point above it. After one fencer reaches it, the other can still be awarded points up to it, and a bout where both reach it is a tie. It is at least 1. With the point cap switched off, scores are not limited.
 _Avoid_: Target score, max points, first-to
+
+**Settings**:
+The bout length and the point cap as the referee has chosen them. Each can be switched off on its own and keeps its value while off. They are remembered between bouts and between app launches, and a change applies from the next new bout.
+_Avoid_: Preferences, options, ruleset, preset
 
 **Fencer**:
 One of the two people sparring in a bout, identified only as Red or Blue.
@@ -65,5 +69,5 @@ Exchanging which side of the display Red and Blue appear on, without changing th
 _Avoid_: Mirror, flip
 
 **New bout**:
-Clearing the score, the point log and the bout timer once the referee confirms, so the next bout can start. The side arrangement is kept.
+Clearing the score, the point log and the bout timer once the referee confirms, so the next bout can start. The side arrangement and the settings are kept.
 _Avoid_: Reset, restart, clear
