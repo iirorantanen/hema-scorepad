@@ -17,7 +17,7 @@ The final exchange of a bout, called by the referee when ten seconds remain on t
 _Avoid_: Final pass, overtime, sudden death
 
 **Bout length**:
-The time the bout timer counts down from, chosen by the referee before the bout. It is at least 30 seconds. With the bout length switched off, the bout has no bout timer and no last exchange is signalled.
+The time the bout timer counts down from, chosen by the referee before the bout. It is at least 30 seconds. With the bout timer off, there is no countdown and no last exchange is signalled.
 _Avoid_: Duration, time limit
 
 **Point cap**:
@@ -49,7 +49,7 @@ The list of points awarded in a bout that still stand, each with the fencer, the
 _Avoid_: History, event log, score history
 
 **Undo**:
-Taking back the most recent point, as if it had never been awarded. It can be repeated back to 0–0, cannot be reversed, and does not change the bout timer.
+Taking back the most recent point, as if it had never been awarded. It can be repeated back to 0–0, cannot be reversed, and does not change the bout timer, except that a settings change waiting for the next new bout applies once undo leaves no points standing in a bout whose bout timer has not run.
 _Avoid_: Revert, correction, remove point
 
 **Signal**:
