@@ -25,7 +25,7 @@ The score at which a bout ends, chosen by the referee before the bout. No fencer
 _Avoid_: Target score, max points, first-to
 
 **Settings**:
-The bout length and the point cap as the referee has chosen them. Each can be switched off on its own and keeps its value while off. They are remembered between bouts and between app launches, and a change applies from the next new bout.
+The bout length and the point cap as the referee has chosen them. Each can be switched off on its own and keeps its value while off. They are remembered between bouts and between app launches. A change applies to the current bout while no points stand and the bout timer has not run, and from the next new bout otherwise.
 _Avoid_: Preferences, options, ruleset, preset
 
 **Fencer**:
