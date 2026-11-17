@@ -21,7 +21,7 @@ The time the bout timer counts down from, chosen by the referee before the bout.
 _Avoid_: Duration, time limit
 
 **Point cap**:
-The score at which a bout ends, chosen by the referee before the bout. No fencer can be awarded a point above it.
+The score at which a bout ends, chosen by the referee before the bout. No fencer can be awarded a point above it. After one fencer reaches it, the other can still be awarded points up to it, and a bout where both reach it is a tie.
 _Avoid_: Target score, max points, first-to
 
 **Fencer**:
