@@ -56,6 +56,14 @@ _Avoid_: Alert, notification, haptic
 A countdown from the bout length that keeps running while points are awarded, until the referee pauses it.
 _Avoid_: Clock, stopwatch
 
+**Side arrangement**:
+Which side of the display Red and Blue each appear on.
+_Avoid_: Layout, orientation
+
 **Swap sides**:
 Exchanging which side of the display Red and Blue appear on, without changing their scores.
 _Avoid_: Mirror, flip
+
+**New bout**:
+Clearing the score, the point log and the bout timer once the referee confirms, so the next bout can start. The side arrangement is kept.
+_Avoid_: Reset, restart, clear
