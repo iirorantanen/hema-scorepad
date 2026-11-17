@@ -67,16 +67,16 @@ private fun Duration.reading(): String {
 fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
     var showLog by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(Color.Black)) {
-        Timer(bout.timeRemaining, bout.timerRunning, onAction)
-        // The timer and the controls already sit inside the top and bottom insets,
-        // so the halves must not pad for them again.
-        Row(Modifier.weight(1f).consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical))) {
+        // The controls already sit inside the bottom inset, so the halves must not pad for it again.
+        Row(Modifier.weight(1f).consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))) {
             Half(Fencer.RED, bout.score(Fencer.RED), onAction)
             Box(Modifier.width(2.dp).fillMaxHeight().background(Color.DarkGray))
             Half(Fencer.BLUE, bout.score(Fencer.BLUE), onAction)
         }
-        // Small controls in their own bar. The top padding is a dead strip, so a tap
-        // slightly high on a control lands on nothing instead of awarding a point.
+        // Below the halves so a thumb reaches it one-handed, above the controls so it clears the home-swipe edge.
+        Timer(bout.timeRemaining, bout.timerRunning, onAction)
+        // Small controls in their own bar. The top padding is a dead strip, so a tap slightly high
+        // on a control, or slightly low on the timer, lands on nothing.
         Row(
             Modifier
                 .fillMaxWidth()
@@ -145,7 +145,7 @@ private fun Timer(remaining: Duration, running: Boolean, onAction: (RefereeActio
             .clickable(onClickLabel = if (running) "Pause the bout timer" else "Start the bout timer") {
                 onAction(RefereeAction.ToggleTimer)
             }
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .padding(8.dp),
         contentAlignment = Alignment.Center,
     ) {
