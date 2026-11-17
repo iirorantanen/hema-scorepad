@@ -21,13 +21,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val vibrator = getSystemService(Vibrator::class.java)
+        val preferences = getPreferences(MODE_PRIVATE)
         setContent {
             // Saveable, so the bout survives rotation.
-            var bout by rememberSaveable { mutableStateOf(BoutState()) }
+            var bout by rememberSaveable { mutableStateOf(BoutState(preferences.settings())) }
             // Queued, so signals given close together play one after another.
             val signals = remember { Channel<Signal>(Channel.UNLIMITED) }
             LaunchedEffect(Unit) { vibrator?.play(signals) }
             fun show(update: BoutUpdate) {
+                // Saved as the referee changes them, so the next launch starts with them.
+                if (update.state.nextSettings != bout.nextSettings) preferences.save(update.state.nextSettings)
                 bout = update.state
                 update.signals.forEach { signals.trySend(it) }
             }
