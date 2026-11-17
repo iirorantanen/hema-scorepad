@@ -121,7 +121,7 @@ fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
 private val dialogTitle = TextStyle(color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
 private val dialogText = TextStyle(color = Color.White, fontSize = 18.sp, fontFeatureSettings = "tnum")
 
-/** The bout length and the point cap for the next new bout. Closes on a tap outside or back. */
+/** The bout length and the point cap the referee has chosen. Closes on a tap outside or back. */
 @Composable
 private fun SettingsDialog(settings: Settings, onChange: (Settings) -> Unit, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
@@ -145,7 +145,7 @@ private fun SettingsDialog(settings: Settings, onChange: (Settings) -> Unit, onD
                 onSwitch = { onChange(settings.copy(pointCapOn = it)) },
             )
             BasicText(
-                text = "A change applies from the next new bout.",
+                text = "A change during a bout applies from the next new bout.",
                 modifier = Modifier.padding(top = 12.dp),
                 style = dialogText.copy(color = Color.LightGray),
             )

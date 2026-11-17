@@ -15,7 +15,7 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 - Swap sides exchanges which half shows Red and which shows Blue, so the display matches where the fencers stand. Scores, the point log and the bout timer are untouched, so it is safe mid-bout.
 - The final score stays on the display until the referee starts a new bout. New bout asks for confirmation, then clears the score, the point log and "Last exchange", and returns the bout timer to a paused full bout length. The side arrangement and the settings are kept.
 - The settings control (⚙) opens the bout length and the point cap. The bout length changes in steps of 30 seconds, down to 0:30, and the point cap in steps of one, down to 1. Each can be switched off on its own and keeps its value while off. With the bout timer off there is no countdown, no "Last exchange" and no last-exchange signal. With the point cap off, scores are not limited and there is no end-of-bout signal. With both off the scoreboard is a plain counter.
-- Settings are remembered between bouts and between app launches. A change applies from the next new bout, so the bout in progress keeps the bout length and point cap it started with.
+- Settings are remembered between bouts and between app launches. A change made before the bout has begun, with no points standing and the bout timer not yet run, applies to that bout. A change made during a bout applies from the next new bout, so the bout in progress keeps the bout length and point cap it started with.
 - Nothing leaves the device. The app has no internet permission.
 
 ## Install

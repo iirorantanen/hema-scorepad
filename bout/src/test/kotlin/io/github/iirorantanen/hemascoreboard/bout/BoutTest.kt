@@ -612,6 +612,7 @@ class BoutTest {
     @Test
     fun `a bout with changed settings survives being saved and restored`() {
         val bout = BoutState(Settings(boutLength = 90.seconds, timerOn = false))
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
             .handle(RefereeAction.ChangeSettings(Settings(pointCap = 5, pointCapOn = false))).state
 
         assertEquals(bout, bout.savedAndRestored())
@@ -629,5 +630,40 @@ class BoutTest {
 
         assertEquals(1, first.state.score(Fencer.RED))
         assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), first.signals)
+    }
+
+    @Test
+    fun `a bout length and point cap changed before the bout has begun apply to that bout`() {
+        val changed = BoutState().handle(RefereeAction.SwapSides).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds, pointCap = 5)))
+
+        assertEquals(emptyList(), changed.signals)
+        assertEquals(90.seconds, changed.state.timeRemaining)
+        assertFalse(changed.state.timerRunning)
+        assertTrue(changed.state.sidesSwapped)
+
+        val fifth = changed.state.award(Fencer.RED, 4).handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), fifth.signals)
+    }
+
+    @Test
+    fun `a bout whose only point was undone has not begun, so a changed bout length applies to it`() {
+        val changed = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.Undo).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds))).state
+
+        assertEquals(90.seconds, changed.timeRemaining)
+    }
+
+    @Test
+    fun `a bout whose bout timer has run has begun, even while paused with no points`() {
+        val changed = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(1.seconds).state
+            .handle(RefereeAction.ToggleTimer).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds))).state
+
+        assertEquals(2.minutes + 59.seconds, changed.timeRemaining)
+        assertEquals(90.seconds, changed.handle(RefereeAction.NewBout).state.timeRemaining)
     }
 }

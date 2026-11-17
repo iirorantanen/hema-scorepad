@@ -23,7 +23,8 @@ sealed interface RefereeAction {
     data object NewBout : RefereeAction
 
     /**
-     * Changes the bout length and the point cap. The change applies from the next new bout.
+     * Changes the bout length and the point cap. The change applies from the next new bout,
+     * or to this bout when it has not begun: no points stand and the bout timer has not run.
      * A bout length below 30 seconds or a point cap below 1 is raised to that lowest value.
      */
     data class ChangeSettings(val settings: Settings) : RefereeAction
@@ -95,16 +96,18 @@ data class BoutState(
         RefereeAction.SwapSides -> BoutUpdate(copy(sidesSwapped = !sidesSwapped), emptyList())
         // A fresh state, so nothing else can carry over; only the settings and the side arrangement are kept.
         RefereeAction.NewBout -> BoutUpdate(BoutState(nextSettings, sidesSwapped = sidesSwapped), emptyList())
-        is RefereeAction.ChangeSettings -> BoutUpdate(
-            copy(
-                nextSettings = action.settings.copy(
-                    // Longer than the last ten seconds, so the last exchange never starts with the bout.
-                    boutLength = action.settings.boutLength.coerceAtLeast(30.seconds),
-                    pointCap = action.settings.pointCap.coerceAtLeast(1),
-                ),
-            ),
-            emptyList(),
-        )
+        is RefereeAction.ChangeSettings -> {
+            val chosen = action.settings.copy(
+                // Longer than the last ten seconds, so the last exchange never starts with the bout.
+                boutLength = action.settings.boutLength.coerceAtLeast(30.seconds),
+                pointCap = action.settings.pointCap.coerceAtLeast(1),
+            )
+            val begun = log.isNotEmpty() || timerRunning || timeRemaining != settings.boutLength
+            BoutUpdate(
+                if (begun) copy(nextSettings = chosen) else BoutState(chosen, sidesSwapped = sidesSwapped),
+                emptyList(),
+            )
+        }
     }
 
     /** Time has passed. The bout never reads a clock; the caller says how much. */
