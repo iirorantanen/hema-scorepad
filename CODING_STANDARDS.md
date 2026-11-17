@@ -8,11 +8,11 @@ Scoring and timing rules live in the `bout` module. The Screen draws the bout st
 
 ## Tests state referee-visible behaviour
 
-A test gives referee actions and elapsed time, then asserts on what a referee could observe: the score, the point log, the bout timer reading, whether the bout timer is running, and the signals given. Assertions go through the public bout state.
+A test gives referee actions and elapsed time, then asserts on what a referee could observe: the score, the point log, the bout timer reading, whether the bout timer is running, and the signals given. Assertions go through the public bout state. Each rule that reads the score, the point log or the bout timer has a test where undo follows the action that triggers it.
 
 ## Domain concepts carry their glossary name
 
-Code, tests, docs and commit messages name a domain concept with its term from `GLOSSARY.md`. A concept the glossary lacks is raised as a glossary gap.
+Code, tests, docs and commit messages name a domain concept with its term from `GLOSSARY.md`. A concept the glossary lacks is raised as a glossary gap. A glossary entry and the code it names agree when the entry lands: the entry takes the name the code uses, or the code is renamed in the same change.
 
 ## The README describes what the app does now
 
