@@ -4,7 +4,7 @@ Read at review. Every rule here is a judgement call; a rule a script can decide 
 
 ## The bout module owns the rules
 
-Scoring and timing rules live in the `bout` module. Its Scoreboard keeps the current bout, saves it with its settings to a bout store as it changes, brings it back paused at the next launch, pauses the bout timer when the scoreboard leaves the foreground, and passes each signal on as the bout gives it. The bout store holds text only: reading it, the defaults and the lowest values are rules. The Screen draws the bout state the Scoreboard holds and turns taps into referee actions. The activity forwards those referee actions and the time between frames to the Scoreboard, tells it when the scoreboard leaves the foreground, and keeps the screen awake. Device effects turn signals into vibration.
+Rules for scoring, timing, saving the bout and giving signals live in the `bout` module, behind its Scoreboard. Reading stored text, the defaults and the lowest values are rules too. Code outside the module decides nothing about the bout: the Screen draws the bout the Scoreboard holds and turns taps into referee actions, the activity forwards them with elapsed time and leaving the foreground, and an adapter only moves text to storage or a signal to vibration.
 
 ## Tests state referee-visible behaviour
 
