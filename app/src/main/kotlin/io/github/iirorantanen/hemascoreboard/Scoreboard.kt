@@ -31,8 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +76,7 @@ fun Scoreboard(bout: BoutState, onAction: (RefereeAction) -> Unit) {
             Half(Fencer.BLUE, bout.score(Fencer.BLUE), onAction)
         }
         // Below the halves so a thumb reaches it one-handed, above the controls so it clears the home-swipe edge.
-        Timer(bout.timeRemaining, bout.timerRunning, onAction)
+        Timer(bout.timeRemaining, bout.timerRunning, bout.inLastExchange, onAction)
         // Small controls in their own bar. The top padding is a dead strip, so a tap slightly high
         // on a control, or slightly low on the timer, lands on nothing.
         Row(
@@ -136,9 +138,9 @@ private fun PointLog(log: List<LoggedPoint>, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun Timer(remaining: Duration, running: Boolean, onAction: (RefereeAction) -> Unit) {
+private fun Timer(remaining: Duration, running: Boolean, inLastExchange: Boolean, onAction: (RefereeAction) -> Unit) {
     val reading = remaining.reading()
-    Box(
+    Column(
         // clickable comes before the padding so the whole bar is the tap target.
         Modifier
             .fillMaxWidth()
@@ -147,8 +149,16 @@ private fun Timer(remaining: Duration, running: Boolean, onAction: (RefereeActio
             }
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .padding(8.dp),
-        contentAlignment = Alignment.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Inside the timer's tap target, so it adds no dead strip between the halves and the timer.
+        if (inLastExchange) {
+            BasicText(
+                text = "Last exchange",
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                style = TextStyle(color = Color.Yellow, fontSize = 24.sp, fontWeight = FontWeight.Bold),
+            )
+        }
         BasicText(
             text = reading,
             modifier = Modifier.semantics { contentDescription = "Bout timer $reading" },

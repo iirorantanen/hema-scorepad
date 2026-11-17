@@ -145,6 +145,93 @@ class BoutTest {
     }
 
     @Test
+    fun `the last exchange signal is given once, when ten seconds remain`() {
+        val before = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 49.seconds)
+
+        assertEquals(emptyList(), before.signals)
+        assertFalse(before.state.inLastExchange)
+
+        val atTen = before.state.elapse(1.seconds)
+
+        assertEquals(listOf(Signal.LAST_EXCHANGE), atTen.signals)
+        assertTrue(atTen.state.inLastExchange)
+        assertTrue(atTen.state.timerRunning)
+
+        val after = atTen.state.elapse(1.seconds)
+
+        assertEquals(emptyList(), after.signals)
+        assertTrue(after.state.inLastExchange)
+
+        val atZero = after.state.elapse(9.seconds)
+
+        assertEquals(emptyList(), atZero.signals)
+        assertTrue(atZero.state.inLastExchange)
+    }
+
+    @Test
+    fun `a bout timer that passes ten seconds and zero in one step stops without a signal`() {
+        val update = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(3.minutes)
+
+        assertEquals(emptyList(), update.signals)
+        assertFalse(update.state.timerRunning)
+        assertTrue(update.state.inLastExchange)
+    }
+
+    @Test
+    fun `pausing and resuming after the last exchange signal does not repeat it`() {
+        val resumed = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds).state
+            .handle(RefereeAction.ToggleTimer).state
+            .handle(RefereeAction.ToggleTimer)
+
+        assertEquals(emptyList(), resumed.signals)
+
+        val update = resumed.state.elapse(1.seconds)
+
+        assertEquals(emptyList(), update.signals)
+        assertTrue(update.state.inLastExchange)
+        assertEquals(9.seconds, update.state.timeRemaining)
+    }
+
+    @Test
+    fun `a bout paused just before ten seconds gives the last exchange signal once it is resumed`() {
+        val paused = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 49.seconds).state
+            .handle(RefereeAction.ToggleTimer).state
+            .elapse(30.seconds)
+
+        assertEquals(emptyList(), paused.signals)
+        assertFalse(paused.state.inLastExchange)
+
+        val update = paused.state.handle(RefereeAction.ToggleTimer).state
+            .elapse(1.seconds)
+
+        assertEquals(listOf(Signal.LAST_EXCHANGE), update.signals)
+    }
+
+    @Test
+    fun `points can be awarded after the last exchange signal and after zero`() {
+        val afterSignal = BoutState().handle(RefereeAction.ToggleTimer).state
+            .elapse(2.minutes + 50.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertEquals(1, afterSignal.state.score(Fencer.RED))
+        assertEquals(listOf(Signal.RED_POINT), afterSignal.signals)
+
+        val afterZero = afterSignal.state
+            .elapse(10.seconds).state
+            .handle(RefereeAction.AwardPoint(Fencer.BLUE))
+
+        assertEquals(Duration.ZERO, afterZero.state.timeRemaining)
+        assertEquals(1, afterZero.state.score(Fencer.RED))
+        assertEquals(1, afterZero.state.score(Fencer.BLUE))
+        assertEquals(listOf(Signal.BLUE_POINT), afterZero.signals)
+        assertTrue(afterZero.state.inLastExchange)
+    }
+
+    @Test
     fun `each point is logged with the fencer, the bout timer reading and the score after it`() {
         val bout = BoutState().handle(RefereeAction.ToggleTimer).state
             .elapse(20.seconds).state

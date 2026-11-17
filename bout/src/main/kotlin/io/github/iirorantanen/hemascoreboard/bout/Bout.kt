@@ -3,6 +3,7 @@ package io.github.iirorantanen.hemascoreboard.bout
 import java.io.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 enum class Fencer { RED, BLUE }
 
@@ -17,7 +18,7 @@ sealed interface RefereeAction {
 }
 
 /** Something the referee should be told about, without looking at the screen. */
-enum class Signal { RED_POINT, BLUE_POINT }
+enum class Signal { RED_POINT, BLUE_POINT, LAST_EXCHANGE }
 
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
@@ -30,6 +31,8 @@ data class BoutState(
     val log: List<LoggedPoint> = emptyList(),
     val timeRemaining: Duration = 3.minutes,
     val timerRunning: Boolean = false,
+    /** Set when ten seconds remain, and kept for the rest of the bout. */
+    val inLastExchange: Boolean = false,
 ) : Serializable {
     fun score(fencer: Fencer): Int = when (fencer) {
         Fencer.RED -> log.lastOrNull()?.red ?: 0
@@ -55,6 +58,17 @@ data class BoutState(
     fun elapse(elapsed: Duration): BoutUpdate {
         if (!timerRunning) return BoutUpdate(this, emptyList())
         val remaining = (timeRemaining - elapsed).coerceAtLeast(Duration.ZERO)
-        return BoutUpdate(copy(timeRemaining = remaining, timerRunning = remaining > Duration.ZERO), emptyList())
+        val lastTenSeconds = remaining <= 10.seconds
+        // Given once, on entering the last ten seconds, so pause and resume do not repeat it.
+        // Not at 0:00: the bout timer stops without a signal.
+        val signal = lastTenSeconds && !inLastExchange && remaining > Duration.ZERO
+        return BoutUpdate(
+            copy(
+                timeRemaining = remaining,
+                timerRunning = remaining > Duration.ZERO,
+                inLastExchange = inLastExchange || lastTenSeconds,
+            ),
+            if (signal) listOf(Signal.LAST_EXCHANGE) else emptyList(),
+        )
     }
 }
