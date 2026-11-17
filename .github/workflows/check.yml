@@ -1,0 +1,26 @@
+# The same check as .githooks/pre-commit, for clones that have not enabled the hook.
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04 # image ships Android platform 37.0 and build-tools 36.0.0
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Bout tests and Android lint
+        run: ./gradlew check

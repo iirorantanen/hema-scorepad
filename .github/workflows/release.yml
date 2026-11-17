@@ -39,8 +39,8 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Unit tests
-        run: ./gradlew test
+      - name: Bout tests and Android lint
+        run: ./gradlew check
 
       - name: Release build
         env:
