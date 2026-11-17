@@ -10,6 +10,10 @@ Rules for scoring, timing, saving the bout and giving signals live in the `bout`
 
 A test gives referee actions and elapsed time, plus leaving the foreground or a next launch where the rule is about one, then asserts on what a referee could observe: the score, the point log, the bout timer reading, whether the bout timer is running, and the signals given. Assertions go through the public bout state. Each rule that reads the score, the point log or the bout timer has a test where undo follows the action that triggers it.
 
+## Stored text is read only when a release wrote it
+
+Code that reads text an earlier build stored names the release tag that wrote that text, in a comment or in the commit message. `git tag --contains <commit>`, run on the commit that introduced the earlier form, decides whether a release wrote it. Text only an unreleased build wrote is not read.
+
 ## Domain concepts carry their glossary name
 
 Code, tests, docs and commit messages name a domain concept with its term from `GLOSSARY.md`. A concept the glossary lacks is raised as a glossary gap. A glossary entry and the code it names agree when the entry lands: the entry takes the name the code uses, or the code is renamed in the same change.
