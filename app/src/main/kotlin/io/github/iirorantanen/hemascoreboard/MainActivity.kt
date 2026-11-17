@@ -7,11 +7,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import io.github.iirorantanen.hemascoreboard.bout.BoutState
 import io.github.iirorantanen.hemascoreboard.bout.BoutUpdate
+import io.github.iirorantanen.hemascoreboard.bout.Signal
+import kotlinx.coroutines.channels.Channel
 import kotlin.time.Duration.Companion.nanoseconds
 
 class MainActivity : ComponentActivity() {
@@ -21,9 +24,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Saveable, so the bout survives rotation.
             var bout by rememberSaveable { mutableStateOf(BoutState()) }
+            // Queued, so signals given close together play one after another.
+            val signals = remember { Channel<Signal>(Channel.UNLIMITED) }
+            LaunchedEffect(Unit) { vibrator?.play(signals) }
             fun show(update: BoutUpdate) {
                 bout = update.state
-                update.signals.forEach { vibrator?.vibrate(it.vibration()) }
+                update.signals.forEach { signals.trySend(it) }
             }
             val running = bout.timerRunning
             LaunchedEffect(running) {
