@@ -21,7 +21,7 @@ import kotlin.time.Duration
  */
 class ScoreboardViewModel(store: BoutStore, vibrator: Vibrator?) : ViewModel() {
     // Queued, so signals given close together play one after another. Three wait behind the one playing:
-    // enough for a double hit that reaches the point cap, and a mash does not vibrate long after the last tap.
+    // enough for a double that reaches the point cap, and a mash does not vibrate long after the last tap.
     // The oldest goes first, so the end-of-bout signal, always the newest of its burst, still plays.
     private val signals = Channel<Signal>(3, BufferOverflow.DROP_OLDEST)
     private val scoreboard = Scoreboard(store) { signals.trySend(it) }

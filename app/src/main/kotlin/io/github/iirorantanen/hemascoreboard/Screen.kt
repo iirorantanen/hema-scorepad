@@ -188,7 +188,7 @@ private fun ConfirmNewBout(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         Column(Modifier.fillMaxWidth().background(Color(0xFF202020)).padding(16.dp)) {
             BasicText(text = "Start a new bout?", style = dialogTitle)
             BasicText(
-                text = "This clears the score and the point log, and resets the bout timer.",
+                text = "This clears the score, the point log and the bout timer.",
                 modifier = Modifier.padding(top = 12.dp),
                 style = dialogText,
             )
