@@ -57,7 +57,7 @@ Taking back the most recent point, as if it had never been awarded. It can be re
 _Avoid_: Revert, correction, remove point
 
 **Signal**:
-Something the scoreboard tells the referee without them looking at the display, such as which fencer was just awarded a point.
+Something the scoreboard gives to tell the referee what happened without them looking at the display. There are four: a Red point, a Blue point, the last exchange, and the end of the bout when a fencer reaches the point cap.
 _Avoid_: Alert, notification, haptic
 
 **Bout timer**:
