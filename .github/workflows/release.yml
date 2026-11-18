@@ -39,7 +39,7 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Bout tests and Android lint
+      - name: Bout tests, Kotlin format and Android lint
         run: ./gradlew check
 
       - name: Release build

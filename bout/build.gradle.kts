@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 // Bout logic: shared Kotlin with no Android and no JVM-only API. All scoring and timing rules live here.
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {

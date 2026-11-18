@@ -1,4 +1,4 @@
 #!/bin/sh
-# Refuses the commit when the Gradle check task (bout logic tests, Android lint) fails.
+# Refuses the commit when the Gradle check task (bout logic tests, Kotlin format, Android lint) fails.
 # shortcut: checks the working tree, not the staged snapshot; stash unstaged changes first once partial commits need checking.
 exec ./gradlew check

@@ -1,0 +1,8 @@
+root = true
+
+[*.{kt,kts}]
+# The style the code was already written in; ktlint's own default would rewrap most files.
+ktlint_code_style = intellij_idea
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# With no line length limit, this rule pulls every expression body onto the signature line.
+ktlint_standard_function-signature = disabled
