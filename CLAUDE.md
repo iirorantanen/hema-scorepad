@@ -12,6 +12,10 @@ The five canonical triage labels, used under their default names. See `docs/agen
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+## Emulator
+
+Verifying behaviour on a device: launch, rotation, the display, which vibration played. See `docs/agents/emulator.md`.
+
 ## Pre-commit hook
 
 Enable it once per clone with `git config core.hooksPath .githooks`. See `README.md`.
