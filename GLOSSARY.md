@@ -64,6 +64,10 @@ _Avoid_: Alert, notification, haptic
 A countdown from the bout length that keeps running while points are awarded, until the referee pauses it or the scoreboard leaves the foreground. A bout brought back at the next app launch has it paused.
 _Avoid_: Clock, stopwatch
 
+**Half**:
+The part of the display that belongs to one fencer. It shows that fencer's score in their colour, and the referee awards them a point by tapping anywhere on it. A half is a fencer's and a side is a place: the Red half is on the left side or the right side of the display, and swap sides moves it to the other.
+_Avoid_: Side as a name for a fencer's half, panel, zone, column
+
 **Side arrangement**:
 Which side of the display Red and Blue each appear on.
 _Avoid_: Layout, orientation
