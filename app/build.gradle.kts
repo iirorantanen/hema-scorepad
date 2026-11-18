@@ -12,8 +12,8 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.iirorantanen.hemascoreboard"
-        minSdk = 26 // first level with VibrationEffect, so vibration needs no legacy branch
+        applicationId = "io.github.iirorantanen.hemascoreboard" // the same in every release (ADR 0003)
+        minSdk = 26 // first level with VibrationEffect, so vibration needs no legacy branch (ADR 0003)
         targetSdk = 36
         versionCode = releaseInput("versionCode")?.toInt() ?: 1
         versionName = releaseInput("versionName") ?: "0.1"
