@@ -29,7 +29,7 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 
 ## Development
 
-Enable the pre-commit hook once per clone. It runs `./gradlew check` (the bout tests, on the JVM and in JavaScript, the Kotlin format check and Android lint) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
+Enable the pre-commit hook once per clone. It runs `./gradlew check` (the bout tests, on the JVM and in JavaScript, the measure of which bout rules those tests run, the Kotlin format check and Android lint) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
 
 ```bash
 git config core.hooksPath .githooks
@@ -45,6 +45,18 @@ Run the bout tests on the JVM and in JavaScript. Gradle downloads the Node.js th
 
 ```bash
 ./gradlew :bout:allTests
+```
+
+Measure which bout rules the tests run. The check fails when a line or a branch of the bout module is run by no bout test, and names the file and line. The measure comes from the JVM run of the bout tests, and the app module is not measured:
+
+```bash
+./gradlew :bout:boutCoverage
+```
+
+A line named as run in part has code no test reaches, most often one side of a branch. The HTML report shows which:
+
+```bash
+./gradlew :bout:koverHtmlReport
 ```
 
 Build the app and install it on a connected device or emulator:

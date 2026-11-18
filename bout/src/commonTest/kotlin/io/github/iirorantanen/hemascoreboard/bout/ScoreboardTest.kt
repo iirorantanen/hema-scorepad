@@ -96,6 +96,19 @@ class ScoreboardTest {
     }
 
     @Test
+    fun `leaving the foreground with the bout timer paused leaves it paused at its reading`() {
+        val scoreboard = Scoreboard(InMemoryBoutStore()) {}
+        scoreboard.handle(RefereeAction.ToggleTimer)
+        scoreboard.elapse(10.seconds)
+        scoreboard.handle(RefereeAction.ToggleTimer)
+
+        val away = scoreboard.leaveForeground()
+
+        assertFalse(away.timerRunning)
+        assertEquals(2.minutes + 50.seconds, away.timeRemaining)
+    }
+
+    @Test
     fun `undo after leaving the foreground takes back the point and leaves the bout timer paused at its reading`() {
         val scoreboard = Scoreboard(InMemoryBoutStore()) {}
         scoreboard.handle(RefereeAction.ToggleTimer)
