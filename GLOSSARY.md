@@ -1,12 +1,12 @@
-# HEMA Sparring Scoreboard
+# HEMA Scorepad
 
-A single-bout scoreboard for plain HEMA sparring, operated by a referee on the sideline. It is not a tournament system.
+HEMA Scorepad is a single-bout scoreboard for plain HEMA sparring, operated by a referee on the sideline. It is not a tournament system.
 
 ## Language
 
 **Scoreboard**:
-What the referee operates: it keeps the bout, also between app launches, remembers the settings and gives signals. The Android app and the browser version are its two versions. "App" stays the word for the Android app as the thing installed, launched and sent to the background.
-_Avoid_: App as a name for what the referee operates, session
+What the referee operates: it keeps the bout, also between app launches, remembers the settings and gives signals. The Android app and the browser version are its two versions. "App" stays the word for the Android app as the thing installed, launched and sent to the background. HEMA Scorepad is its name, and "scoreboard" stays the word for the thing.
+_Avoid_: App as a name for what the referee operates, scorepad as a word for the scoreboard, session
 
 **Bout**:
 One sparring match between two fencers, with its own score and bout timer. It ends when a fencer reaches the point cap or when the last exchange finishes, whichever comes first.
