@@ -1,3 +1,5 @@
+![HEMA Scorepad: the head of Fiore the Boar, the mascot, between a Red score and a Blue score drawn as on the display](docs/brand/readme-header.svg)
+
 # HEMA Scorepad
 
 HEMA Scorepad is an Android scoreboard for one bout of Historical European Martial Arts (HEMA) sparring, operated by a referee on the sideline. It is not a tournament system.
@@ -27,7 +29,7 @@ HEMA Scorepad is an Android scoreboard for one bout of Historical European Marti
 2. Download `hema-scorepad-<version>.apk` and open it.
 3. Allow the browser to install apps when Android asks.
 
-Android lists the app as "Scorepad". The full name does not fit under a launcher icon.
+Android lists the app as "Scorepad". The full name does not fit under a launcher icon. The icon is the head of Fiore the Boar, the mascot, on black.
 
 ## Development
 
@@ -68,5 +70,18 @@ Build the app and install it on a connected device or emulator:
 ```
 
 Pushing a `v*` tag publishes a signed APK as a GitHub Release. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
+
+The artwork is in [`docs/brand/`](docs/brand/):
+
+- `fiore.svg` is the master of Fiore the Boar: the head in colour and, under the id `fiore-mono`, its one-colour form.
+- `icon.svg` is the icon, the head on black.
+- `readme-header.svg` is the picture at the top of this file.
+- `social-preview.png` is the picture GitHub shows with a link to the repository. It is uploaded by hand in the repository settings and is rendered from `social-preview.svg`.
+
+The icon, the two pictures and the two layers of the Android launcher icon in `app/src/main/res/drawable/` each hold a copy of the master's shapes. A change to the master is repeated in each of them by hand. Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
+
+```bash
+google-chrome --headless --hide-scrollbars --window-size=1280,640 --screenshot=docs/brand/social-preview.png docs/brand/social-preview.svg
+```
 
 The project's vocabulary (bout, fencer, referee, signal and so on) is defined in [GLOSSARY.md](GLOSSARY.md).

@@ -7,6 +7,7 @@
     <!-- The label is the short name: a launcher cuts "HEMA Scorepad" to "HEMA Sc…" under the icon (#55). -->
     <application
         android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
         android:label="Scorepad"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity

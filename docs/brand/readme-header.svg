@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 260">
+  <title>HEMA Scorepad: the head of Fiore the Boar between a Red score of 3 and a Blue score of 2, drawn as on the display</title>
+  <!-- A picture of the display, not a screenshot. The head is a copy of fiore.svg. Fiore is not on the display of the scoreboard. -->
+  <rect width="1000" height="260" rx="12" fill="#000000"/>
+  <rect x="499" width="2" height="260" fill="#444444"/>
+  <text x="250" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="190" fill="#FF5252">3</text>
+  <text x="750" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="190" fill="#4DA3FF">2</text>
+  <circle cx="500" cy="130" r="112" fill="#000000"/>
+  <svg x="390" y="20" width="220" height="220" viewBox="6 -4 288 288">
+    <g id="fiore-head">
+      <polygon points="112,92 120,60 130,88 140,54 150,86 160,54 170,88 180,60 188,92" fill="#3d2416"/>
+      <polygon points="78,110 70,62 112,92" fill="#6a3e25"/>
+      <polygon points="84,104 78,74 104,94" fill="#c98a6e"/>
+      <polygon points="222,110 230,62 188,92" fill="#6a3e25"/>
+      <polygon points="216,104 222,74 196,94" fill="#c98a6e"/>
+      <ellipse cx="150" cy="150" rx="82" ry="70" fill="#8b5a3c"/>
+      <ellipse cx="150" cy="188" rx="40" ry="27" fill="#e0a48a" stroke="#6a3e25" stroke-width="3"/>
+      <ellipse cx="137" cy="188" rx="6" ry="9" fill="#4a2a1a"/>
+      <ellipse cx="163" cy="188" rx="6" ry="9" fill="#4a2a1a"/>
+      <path d="M116,203Q96,198 98,172Q108,192 124,196Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+      <path d="M184,203Q204,198 202,172Q192,192 176,196Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+      <path d="M88,104Q150,40 212,104Q150,88 88,104Z" fill="#b3261e"/>
+      <path d="M200,90Q250,40 262,70Q235,70 205,98Z" fill="#f2c94c"/>
+      <circle cx="122" cy="138" r="13" fill="#ffffff"/>
+      <circle cx="178" cy="138" r="13" fill="#ffffff"/>
+      <circle cx="125" cy="140" r="6" fill="#222222"/>
+      <circle cx="175" cy="140" r="6" fill="#222222"/>
+      <path d="M105,118L138,124M195,118L162,124" fill="none" stroke="#3d2416" stroke-width="6" stroke-linecap="round"/>
+      <path d="M130,212Q150,222 170,212" fill="none" stroke="#4a2a1a" stroke-width="3"/>
+    </g>
+  </svg>
+</svg>

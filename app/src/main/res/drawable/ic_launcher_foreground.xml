@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The foreground of the launcher icon: the head of Fiore the Boar, the shapes of docs/brand/fiore.svg as paths.
+    The feather reaches 132.6 units from the centre of the face. In a viewport of 436 units that is 32.8 dp,
+    inside the circle of radius 33 dp that no launcher mask cuts.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="436"
+    android:viewportHeight="436">
+    <!-- Moves the centre of the face, (150,140) in the master, to the centre of the icon. -->
+    <group android:translateX="68" android:translateY="78">
+        <path android:fillColor="#3D2416" android:pathData="M112,92L120,60L130,88L140,54L150,86L160,54L170,88L180,60L188,92Z" />
+        <path android:fillColor="#6A3E25" android:pathData="M78,110L70,62L112,92Z" />
+        <path android:fillColor="#C98A6E" android:pathData="M84,104L78,74L104,94Z" />
+        <path android:fillColor="#6A3E25" android:pathData="M222,110L230,62L188,92Z" />
+        <path android:fillColor="#C98A6E" android:pathData="M216,104L222,74L196,94Z" />
+        <path android:fillColor="#8B5A3C" android:pathData="M68,150a82,70 0 1,0 164,0a82,70 0 1,0 -164,0Z" />
+        <path android:fillColor="#E0A48A" android:strokeColor="#6A3E25" android:strokeWidth="3" android:pathData="M110,188a40,27 0 1,0 80,0a40,27 0 1,0 -80,0Z" />
+        <path android:fillColor="#4A2A1A" android:pathData="M131,188a6,9 0 1,0 12,0a6,9 0 1,0 -12,0Z" />
+        <path android:fillColor="#4A2A1A" android:pathData="M157,188a6,9 0 1,0 12,0a6,9 0 1,0 -12,0Z" />
+        <path android:fillColor="#FFFBE8" android:strokeColor="#6A3E25" android:strokeWidth="2" android:pathData="M116,203Q96,198 98,172Q108,192 124,196Z" />
+        <path android:fillColor="#FFFBE8" android:strokeColor="#6A3E25" android:strokeWidth="2" android:pathData="M184,203Q204,198 202,172Q192,192 176,196Z" />
+        <path android:fillColor="#B3261E" android:pathData="M88,104Q150,40 212,104Q150,88 88,104Z" />
+        <path android:fillColor="#F2C94C" android:pathData="M200,90Q250,40 262,70Q235,70 205,98Z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M109,138a13,13 0 1,0 26,0a13,13 0 1,0 -26,0Z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M165,138a13,13 0 1,0 26,0a13,13 0 1,0 -26,0Z" />
+        <path android:fillColor="#222222" android:pathData="M119,140a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" />
+        <path android:fillColor="#222222" android:pathData="M169,140a6,6 0 1,0 12,0a6,6 0 1,0 -12,0Z" />
+        <path android:strokeColor="#3D2416" android:strokeWidth="6" android:strokeLineCap="round" android:pathData="M105,118L138,124M195,118L162,124" />
+        <path android:strokeColor="#4A2A1A" android:strokeWidth="3" android:pathData="M130,212Q150,222 170,212" />
+    </group>
+</vector>

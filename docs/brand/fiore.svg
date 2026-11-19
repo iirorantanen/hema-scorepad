@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 -4 288 288">
+  <title>Fiore the Boar</title>
+  <!--
+    The master of Fiore the Boar, the mascot of HEMA Scorepad, cleaned up from the owner's sketch "Maestro Porco".
+    The view box is the square of the icon. Its centre, (150,140), is the centre of the face.
+    Every shape is within 133 units of that centre, so a round mask of the square, radius 144, cuts nothing.
+    The browns are Fiore's own and are not colours of the display.
+  -->
+  <g id="fiore-head">
+    <polygon points="112,92 120,60 130,88 140,54 150,86 160,54 170,88 180,60 188,92" fill="#3d2416"/>
+    <polygon points="78,110 70,62 112,92" fill="#6a3e25"/>
+    <polygon points="84,104 78,74 104,94" fill="#c98a6e"/>
+    <polygon points="222,110 230,62 188,92" fill="#6a3e25"/>
+    <polygon points="216,104 222,74 196,94" fill="#c98a6e"/>
+    <ellipse cx="150" cy="150" rx="82" ry="70" fill="#8b5a3c"/>
+    <ellipse cx="150" cy="188" rx="40" ry="27" fill="#e0a48a" stroke="#6a3e25" stroke-width="3"/>
+    <ellipse cx="137" cy="188" rx="6" ry="9" fill="#4a2a1a"/>
+    <ellipse cx="163" cy="188" rx="6" ry="9" fill="#4a2a1a"/>
+    <path d="M116,203Q96,198 98,172Q108,192 124,196Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+    <path d="M184,203Q204,198 202,172Q192,192 176,196Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+    <path d="M88,104Q150,40 212,104Q150,88 88,104Z" fill="#b3261e"/>
+    <path d="M200,90Q250,40 262,70Q235,70 205,98Z" fill="#f2c94c"/>
+    <circle cx="122" cy="138" r="13" fill="#ffffff"/>
+    <circle cx="178" cy="138" r="13" fill="#ffffff"/>
+    <circle cx="125" cy="140" r="6" fill="#222222"/>
+    <circle cx="175" cy="140" r="6" fill="#222222"/>
+    <path d="M105,118L138,124M195,118L162,124" fill="none" stroke="#3d2416" stroke-width="6" stroke-linecap="round"/>
+    <path d="M130,212Q150,222 170,212" fill="none" stroke="#4a2a1a" stroke-width="3"/>
+  </g>
+  <defs>
+    <!--
+      The one-colour form, for a themed icon that is drawn in a single colour: the outline of the head,
+      with the eyes and the nostrils as holes and a gap 5 wide around the cap, the snout and the tusks.
+      It is one outline, so its holes are transparent. It is not drawn when this file is shown.
+    -->
+    <path id="fiore-mono" fill-rule="evenodd" d="M140,54L134.9,71.2Q139.9,70 144.9,69.6L140,54ZM160,54L155.1,69.6Q160.1,70 165.1,71.2L160,54ZM120,60L115.2,79.1Q120.2,76.3 125.1,74.3L120,60ZM180,60L174.9,74.4Q179.8,76.4 184.8,79.1L180,60ZM150,74.7Q123.1,74.7 96.2,99.5Q123.1,93.5 150,93.5Q176.9,93.5 203.8,99.5Q176.9,74.7 150,74.7ZM70,62L78,110L81.1,108.4L80,108.6L86.2,102.3Q95.2,93 104.1,86.4L70,62ZM247.7,58.8Q240.1,58.8 229.4,65.4L230,62L195.9,86.4Q198.1,88 200.2,89.8Q200.1,89.9 200,90L205,98Q206.1,96.9 207.3,95.9Q208.6,97.1 209.9,98.4Q211.9,100.3 213.8,102.3L220,108.6L218.9,108.4L222,110L226.8,81.1Q245,70 262,70Q257.5,58.8 247.7,58.8ZM124,130C129,130 133,134 133,139C133,144 129,148 124,148C119,148 115,144 115,139C115,134 119,130 124,130ZM176,130C181,130 185,134 185,139C185,144 181,148 176,148C171,148 167,144 167,139C167,134 171,130 176,130ZM137,179C140.3,179 143,183 143,188C143,193 140.3,197 137,197C133.7,197 131,193 131,188C131,183 133.7,179 137,179ZM163,179C166.3,179 169,183 169,188C169,193 166.3,197 163,197C159.7,197 157,193 157,188C157,183 159.7,179 163,179ZM100.6,181.4Q102.4,196.3 115.4,200.2L119,197Q108.4,192.8 100.6,181.4ZM199.4,181.4Q191.6,192.8 181,197L184.6,200.2Q197.6,196.3 199.4,181.4ZM150,163.5C128.7,163.5 113.1,174.9 112.5,187.3Q118,191.9 124.6,193.6L129.2,194.7L125.6,197.9L120.1,202.7C126.8,208.5 137.4,212.5 150,212.5C162.6,212.5 173.2,208.5 179.9,202.7L174.4,197.9L170.8,194.7L175.4,193.6Q182,191.9 187.5,187.3C186.9,174.9 171.3,163.5 150,163.5ZM150,158.5C170.2,158.5 188.4,168.5 191.9,183Q196.2,178 199.8,170.9L203.8,162.8L204.5,171.8Q206.7,199.9 184.6,205.4L184.3,205.5C176.4,212.9 163.7,217.5 150,217.5C136.3,217.5 123.6,212.9 115.7,205.5L115.4,205.4Q93.3,199.9 95.5,171.8L96.2,162.8L100.2,170.9Q103.8,178 108.1,183C111.6,168.5 129.8,158.5 150,158.5ZM150,98.5Q119.3,98.5 88.6,106.4L85,107.4C74.3,119.2 68,134 68,150C68,188.7 104.7,220 150,220C195.3,220 232,188.7 232,150C232,134 225.7,119.2 215,107.4L211.4,106.4Q180.7,98.5 150,98.5Z"/>
+  </defs>
+</svg>

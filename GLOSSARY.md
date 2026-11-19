@@ -68,6 +68,10 @@ _Avoid_: Clock, stopwatch
 The part of the display that belongs to one fencer. It shows that fencer's score in their colour, and the referee awards them a point by tapping anywhere on it. A half is a fencer's and a side is a place: the Red half is on the left side or the right side of the display, and swap sides moves it to the other.
 _Avoid_: Side as a name for a fencer's half, panel, zone, column
 
+**Divider**:
+The line on the display between the two halves.
+_Avoid_: Separator, centre line, border
+
 **Side arrangement**:
 Which side of the display Red and Blue each appear on.
 _Avoid_: Layout, orientation
@@ -79,3 +83,11 @@ _Avoid_: Mirror, flip
 **New bout**:
 Clearing the score, the point log and the bout timer once the referee confirms, so the next bout can start. The side arrangement and the settings are kept.
 _Avoid_: Reset, restart, clear
+
+**Fiore the Boar**:
+The mascot of HEMA Scorepad: a boar's head with a red cap and a yellow feather. Fiore is on the icon and in the README, and is not on the display.
+_Avoid_: Maestro Porco as a name for the mascot (it is the name of the sketch Fiore was drawn from), logo
+
+**Icon**:
+The picture that stands for the scoreboard in the Android launcher and on a home screen: Fiore's head on black.
+_Avoid_: Logo, app icon
