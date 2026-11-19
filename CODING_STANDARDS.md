@@ -16,7 +16,7 @@ Code that reads text an earlier build stored names the release tag that wrote th
 
 ## Domain concepts carry their glossary name
 
-Code, tests, docs and commit messages name a domain concept with its term from `GLOSSARY.md`. A concept the glossary lacks is raised as a glossary gap. A glossary entry and the code it names agree when the entry lands: the entry takes the name the code uses, or the code is renamed in the same change.
+Code, tests, docs and commit messages name a domain concept with its term from `GLOSSARY.md`. A concept the glossary lacks gets its entry in the same change. Parts of the display and brand names count as concepts. A glossary entry and the code it names agree when the entry lands: the entry takes the name the code uses, or the code is renamed in the same change.
 
 ## The README describes what the app does now
 
