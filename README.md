@@ -33,7 +33,7 @@ Android lists the app as "Scorepad". The full name does not fit under a launcher
 
 ## Development
 
-Enable the pre-commit hook once per clone. It runs `./gradlew check` (the bout tests, on the JVM and in JavaScript, the measure of which bout rules those tests run, the Kotlin format check and Android lint) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
+Enable the pre-commit hook once per clone. It runs `./gradlew check` (the bout tests, on the JVM and in JavaScript, the measure of which bout rules those tests run, the Kotlin format check, Android lint and the comparison of the artwork with its master) and refuses the commit when that fails. The hook runs on the development machine only. GitHub runs the same check on every push to `main`, on every pull request and before a release build.
 
 ```bash
 git config core.hooksPath .githooks
@@ -78,10 +78,24 @@ The artwork is in [`docs/brand/`](docs/brand/):
 - `readme-header.svg` is the picture at the top of this file.
 - `social-preview.png` is the picture GitHub shows with a link to the repository. It is uploaded by hand in the repository settings and is rendered from `social-preview.svg`.
 
-The icon, the two pictures and the two layers of the Android launcher icon in `app/src/main/res/drawable/` each hold a copy of the master's shapes. A change to the master is repeated in each of them by hand. Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
+The icon, the two pictures and the two layers of the Android launcher icon in `app/src/main/res/drawable/` each hold a copy of the master's shapes. After a change to the master, write them again. The command needs Python 3 and the JDK:
+
+```bash
+python3 scripts/brand/derive.py
+```
+
+The check fails when one of those files differs from what the command writes, and names the file. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
+
+Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
 
 ```bash
 google-chrome --headless --hide-scrollbars --window-size=1280,640 --screenshot=docs/brand/social-preview.png docs/brand/social-preview.svg
+```
+
+Write a page that shows the icon and the themed icon at 192 px and 48 px, in a round and a rounded-square mask:
+
+```bash
+python3 scripts/brand/sheet.py build/icon-sheet.html
 ```
 
 The project's vocabulary (bout, fencer, referee, signal and so on) is defined in [GLOSSARY.md](GLOSSARY.md).

@@ -3,6 +3,7 @@
     The foreground of the launcher icon: the head of Fiore the Boar, the shapes of docs/brand/fiore.svg as paths.
     The feather reaches 132.6 units from the centre of the face. In a viewport of 436 units that is 32.8 dp,
     inside the circle of radius 33 dp that no launcher mask cuts.
+    Written by scripts/brand/derive.py.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"

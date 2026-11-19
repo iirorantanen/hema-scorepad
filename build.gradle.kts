@@ -13,3 +13,10 @@ plugins {
 allprojects {
     plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().downloadBaseUrl = null }
 }
+
+// Fails when a file that holds a copy of Fiore's shapes differs from what the master gives (README, Development).
+val brandCheck by tasks.registering(Exec::class) {
+    commandLine("python3", "scripts/brand/derive.py", "--check")
+}
+// The ktlint plugin adds the root check task after this script has run.
+tasks.matching { it.name == "check" }.configureEach { dependsOn(brandCheck) }
