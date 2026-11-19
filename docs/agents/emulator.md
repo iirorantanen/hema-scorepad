@@ -1,29 +1,25 @@
 # Running the app on an emulator
 
-The sequence for checking on a device what the app looks like and what it does. Commands run from the repo root. Shell variables do not survive between tool calls, so each call starts with this line:
+The sequence for checking on a device what the app looks like and what it does. Commands run from the repo root.
 
-```bash
-SDK=$(sed -n 's/^sdk.dir=//p' local.properties); ADB=$SDK/platform-tools/adb; APP=io.github.iirorantanen.hemascoreboard; export ANDROID_SERIAL=emulator-5554
-```
-
-`ANDROID_SERIAL` keeps adb on the emulator while a phone is plugged in. An empty `$SDK` means `local.properties` has no `sdk.dir`: stop and report it, as the Gradle build needs the same line.
+From step 3 on, every command is a verb of `scripts/emulator.sh`. The script reads the SDK path from `local.properties` and keeps adb on the emulator while a phone is plugged in. `scripts/emulator.sh adb <arguments>` runs any other adb command the same way. `local.properties has no sdk.dir` from the script means stop and report it, as the Gradle build needs the same line.
 
 ## 1. Emulator and system image, once per machine
 
 ```bash
-ls $SDK/emulator/emulator $SDK/system-images/android-36/default/x86_64/system.img
+SDK=$(sed -n 's/^sdk.dir=//p' local.properties); ls $SDK/emulator/emulator $SDK/system-images/android-36/default/x86_64/system.img
 ```
 
 If either file is missing, **ask the maintainer before downloading**: the two packages are roughly 1 GB to download and 3 GB on disk, and the command accepts their SDK licences. After a yes:
 
 ```bash
-yes | $SDK/cmdline-tools/latest/bin/sdkmanager emulator "system-images;android-36;default;x86_64"
+SDK=$(sed -n 's/^sdk.dir=//p' local.properties); yes | $SDK/cmdline-tools/latest/bin/sdkmanager emulator "system-images;android-36;default;x86_64"
 ```
 
 If `$SDK/emulator/emulator -list-avds` does not print `hema-scoreboard`, create the virtual device:
 
 ```bash
-echo no | $SDK/cmdline-tools/latest/bin/avdmanager create avd --name hema-scoreboard --package "system-images;android-36;default;x86_64" --device pixel_8
+SDK=$(sed -n 's/^sdk.dir=//p' local.properties); echo no | $SDK/cmdline-tools/latest/bin/avdmanager create avd --name hema-scoreboard --package "system-images;android-36;default;x86_64" --device pixel_8
 ```
 
 Done when `$SDK/emulator/emulator -list-avds` prints `hema-scoreboard`.
@@ -31,7 +27,7 @@ Done when `$SDK/emulator/emulator -list-avds` prints `hema-scoreboard`.
 ## 2. KVM
 
 ```bash
-$SDK/emulator/emulator -accel-check
+SDK=$(sed -n 's/^sdk.dir=//p' local.properties); $SDK/emulator/emulator -accel-check
 ```
 
 Done when the output contains `is installed and usable`.
@@ -46,51 +42,44 @@ On any other output, stop work and report the output.
 
 ## 3. Start the headless emulator
 
-Run as a background command; it keeps running until step 9.
-
 ```bash
-$SDK/emulator/emulator -avd hema-scoreboard -no-window -no-audio -no-boot-anim -no-snapshot
+scripts/emulator.sh boot
 ```
 
-Then wait for the boot, which takes about 20 seconds:
-
-```bash
-timeout 180 $ADB wait-for-device shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done' && echo booted
-```
-
-Done when it prints `booted`.
+The emulator keeps running after the command returns, until step 10. The boot takes about 20 seconds. Done when it prints `booted`.
 
 ## 4. Install and launch
 
 ```bash
-./gradlew :app:installDebug
-$ADB shell am start -W -n $APP/.MainActivity
+scripts/emulator.sh install
 ```
 
-Done when the install prints `Installed on 1 device.` and the launch prints `Status: ok`.
+Done when it prints `Installed on 1 device.` and `Status: ok`.
 
-The scoreboard keeps the bout and the settings between app launches. `$ADB shell pm clear $APP` before the launch erases everything it stored, so the app launches as after a first install.
+The scoreboard keeps the bout and the settings between app launches. `scripts/emulator.sh adb shell pm clear io.github.iirorantanen.hemascoreboard` before the launch erases everything it stored, so the app launches as after a first install.
 
 ## 5. Read the display
 
 As text, one line per element: its bounds in pixels, its text, and after the `|` its description for a screen reader.
 
 ```bash
-$ADB exec-out uiautomator dump /dev/tty | tr '>' '\n' | sed -nE 's/.* text="([^"]*)".* content-desc="([^"]*)".* bounds="([^"]*)".*/\3 \1|\2/p' | grep -v ' |$'
+scripts/emulator.sh display
 ```
 
 Each score carries its fencer in the description (`[42,401][495,1631] 1|Red 1`), and the bout timer its reading (`3:00|Bout timer 3:00`). Done when the lines for Red, Blue and the bout timer are printed.
 
-As a screenshot, written to the scratchpad and read as an image:
+As a screenshot, read as an image. A relative path is taken from the repo root, and `build/` is ignored by git:
 
 ```bash
-$ADB exec-out screencap -p > <scratchpad>/display.png
+scripts/emulator.sh shot build/display.png
 ```
+
+A ticket that asks for the display to be unchanged gets two screenshots in one boot: the first of `HEAD` (`git stash -u`, step 4, the screenshot, `git stash pop`), the second of the change after step 4 again. The two are compared below the status bar, from y = 150 down, because the clock above it changes.
 
 ## 6. Tap
 
 ```bash
-$ADB shell input tap <x> <y>
+scripts/emulator.sh adb shell input tap <x> <y>
 ```
 
 The point comes from the bounds in step 5: a tap inside the `[x1,y1][x2,y2]` of a score lands on that fencer's half. Bounds change with rotation, so they are read again after step 7. Done when step 5 shows what the tap changed.
@@ -98,18 +87,18 @@ The point comes from the bounds in step 5: a tap inside the `[x1,y1][x2,y2]` of 
 ## 7. Rotate
 
 ```bash
-$ADB shell wm user-rotation lock 1   # landscape
-$ADB shell wm user-rotation lock 0   # portrait
+scripts/emulator.sh adb shell wm user-rotation lock 1   # landscape
+scripts/emulator.sh adb shell wm user-rotation lock 0   # portrait
 ```
 
-The activity is recreated as on a real device. Done when `$ADB shell dumpsys window displays | grep -o 'mCurrentRotation=ROTATION_[0-9]*'` prints `ROTATION_90` for landscape and `ROTATION_0` for portrait.
+The activity is recreated as on a real device. Done when `scripts/emulator.sh adb shell dumpsys window displays | grep -o 'mCurrentRotation=ROTATION_[0-9]*'` prints `ROTATION_90` for landscape and `ROTATION_0` for portrait.
 
 ## 8. Read the most recent vibration
 
 A vibration is recorded when it ends, and signals given close together play one after another. The read comes after the last signal has finished: one second after a single point. `DeviceEffects.kt` holds the lengths of the longer signals and the pause between two signals.
 
 ```bash
-$ADB shell dumpsys vibrator_manager | grep $APP | sort | tail -1
+scripts/emulator.sh adb shell dumpsys vibrator_manager | grep io.github.iirorantanen.hemascoreboard | sort | tail -1
 ```
 
 The dump groups vibrations by usage, and `sort` puts them back in time order. In the line:
@@ -120,13 +109,45 @@ The dump groups vibrations by usage, and `sort` puts them back in time order. In
 
 A Red point is one pulse, recorded as `[Step=0ms(amplitude=0.00),Step=120ms(amplitude=1.00)]` at the lengths `DeviceEffects.kt` held when this was written. A Blue point is two pulses with a pause between them.
 
-## 9. Stop
+## 9. Read the launcher
+
+The launcher is AOSP's, `com.android.launcher3`. It shows the app's label and its icon. Step 5 reads it like the display.
+
+The app list, which shows the icon in colour:
 
 ```bash
-$ADB emu kill
+scripts/emulator.sh adb shell input keyevent KEYCODE_HOME
+scripts/emulator.sh adb shell input swipe 540 1900 540 600 200
 ```
 
-Done when `$ADB devices` lists no `emulator-5554`.
+Done when step 5 prints a line for `Scorepad|Scorepad`.
+
+The themed icon, in one colour. The launcher themes icons on the home screen only, so the app gets a shortcut there first. The drag starts at the centre of the app's bounds in the app list:
+
+```bash
+scripts/emulator.sh adb shell input draganddrop <x> <y> 540 1300 3000
+scripts/emulator.sh adb root
+scripts/emulator.sh adb shell content update --uri content://com.android.launcher3.grid_control/icon_themed --bind boolean_value:b:true
+scripts/emulator.sh adb shell input keyevent KEYCODE_HOME
+```
+
+Done when a screenshot of the home screen shows the icon in one colour on a plain square.
+
+Restore the launcher afterwards. This removes the shortcut and switches themed icons off:
+
+```bash
+scripts/emulator.sh adb shell pm clear com.android.launcher3
+```
+
+Done when, after `KEYCODE_HOME`, step 5 prints no line for `Scorepad`.
+
+## 10. Stop
+
+```bash
+scripts/emulator.sh stop
+```
+
+Done when `scripts/emulator.sh adb devices` lists no `emulator-5554`.
 
 ## What the emulator cannot show
 
