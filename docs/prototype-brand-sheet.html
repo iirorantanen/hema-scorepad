@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!--
+  PROTOTYPE. Throwaway, not part of the scoreboard. Delete after issue #19's follow-up picks a variant.
+  Question: what should HEMA Scorepad's branding look like together: the icon, the README header and the social preview?
+  Plan: three variants of one brand sheet, switchable via ?variant=A|B|C and the bar at the bottom. Open the file in a browser.
+  Fiore's shapes are copied from the owner's sketch "Maestro Porco".
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE: HEMA Scorepad brand sheet</title>
+<style>
+  body { margin: 0; padding: 24px 24px 120px; background: #e9e9ec; color: #1b1b1f; font-family: system-ui, sans-serif; }
+  main { max-width: 1000px; margin: auto; }
+  h1.sheet { font-size: 22px; margin: 0 0 4px; }
+  p.state { margin: 0 0 24px; color: #55555c; }
+  section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  section > h2 { font-size: 14px; text-transform: none; margin: 0 0 14px; color: #55555c; font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 28px; }
+  .cell { text-align: center; font-size: 12px; color: #55555c; }
+  .mask { overflow: hidden; margin: 0 auto 6px; }
+  .mask svg { display: block; }
+  .home { background: #26303c; border-radius: 16px; padding: 18px 14px 10px; display: flex; gap: 14px; }
+  .home .app { width: 72px; text-align: center; }
+  .home .lbl { color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 6px; }
+  .home .ph { width: 56px; height: 56px; border-radius: 50%; background: #5c6773; margin: auto; }
+  .gh { border-radius: 8px; padding: 24px; margin-bottom: 12px; border: 1px solid #d0d7de; }
+  .gh.light { background: #ffffff; color: #1f2328; }
+  .gh.dark { background: #0d1117; color: #f0f6fc; border-color: #30363d; }
+  .gh h1 { margin: 0; font-size: 32px; }
+  .gh p { margin: 6px 0 0; font-size: 16px; opacity: .8; }
+  .social svg { width: 100%; height: auto; display: block; border-radius: 8px; }
+  #bar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #111; color: #fff; border-radius: 999px;
+         padding: 8px 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px #0006; font-size: 15px; z-index: 10; }
+  #bar button { background: #333; color: #fff; border: 0; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; }
+  #bar span { min-width: 220px; text-align: center; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="fiore-body">
+    <ellipse cx="150" cy="275" rx="78" ry="50" fill="#7a4a2e"/>
+    <ellipse cx="150" cy="285" rx="45" ry="30" fill="#a8714f"/>
+  </g>
+  <g id="fiore-head">
+    <polygon points="110,92 118,62 128,88 138,55 148,86 158,52 166,85 178,58 186,90" fill="#3d2416"/>
+    <polygon points="78,110 70,62 112,92" fill="#6a3e25"/><polygon points="84,104 78,74 104,94" fill="#c98a6e"/>
+    <polygon points="222,110 230,62 188,92" fill="#6a3e25"/><polygon points="216,104 222,74 196,94" fill="#c98a6e"/>
+    <ellipse cx="150" cy="150" rx="82" ry="70" fill="#8b5a3c"/>
+    <ellipse cx="150" cy="188" rx="40" ry="27" fill="#e0a48a" stroke="#6a3e25" stroke-width="3"/>
+    <ellipse cx="137" cy="188" rx="6" ry="9" fill="#4a2a1a"/><ellipse cx="163" cy="188" rx="6" ry="9" fill="#4a2a1a"/>
+    <path d="M116,203 Q96,198 98,172 Q108,192 124,196 Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+    <path d="M184,203 Q204,198 202,172 Q192,192 176,196 Z" fill="#fffbe8" stroke="#6a3e25" stroke-width="2"/>
+    <path d="M88,104 Q150,40 212,104 Q150,88 88,104Z" fill="#b3261e"/>
+    <path d="M200,90 Q250,40 262,70 Q235,70 205,98Z" fill="#f2c94c"/>
+    <circle cx="122" cy="138" r="13" fill="#fff"/><circle cx="178" cy="138" r="13" fill="#fff"/>
+    <circle cx="125" cy="140" r="6" fill="#222"/><circle cx="175" cy="140" r="6" fill="#222"/>
+    <path d="M105,118 L138,124 M195,118 L162,124" stroke="#3d2416" stroke-width="6" stroke-linecap="round"/>
+    <path d="M130,212 Q150,222 170,212" stroke="#4a2a1a" stroke-width="3" fill="none"/>
+  </g>
+  <g id="fiore-sword">
+    <line x1="80" y1="190" x2="50" y2="30" stroke="#9aa4ad" stroke-width="9" stroke-linecap="round"/>
+    <line x1="62" y1="198" x2="100" y2="188" stroke="#333" stroke-width="8" stroke-linecap="round"/>
+    <line x1="82" y1="196" x2="90" y2="240" stroke="#5a3a20" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="88" cy="215" r="16" fill="#7a4a2e"/>
+  </g>
+  <g id="fiore-full"><use href="#fiore-body"/><use href="#fiore-head"/><use href="#fiore-sword"/></g>
+  <!-- One-colour head for Android's themed icon: currentColor on --mbg -->
+  <g id="fiore-mono" fill="currentColor">
+    <polygon points="110,92 118,62 128,88 138,55 148,86 158,52 166,85 178,58 186,90"/>
+    <polygon points="78,110 70,62 112,92"/><polygon points="222,110 230,62 188,92"/>
+    <ellipse cx="150" cy="150" rx="82" ry="70"/>
+    <path d="M88,104 Q150,40 212,104 Q150,88 88,104Z" stroke="var(--mbg)" stroke-width="4"/>
+    <path d="M200,90 Q250,40 262,70 Q235,70 205,98Z"/>
+    <ellipse cx="150" cy="188" rx="40" ry="27" stroke="var(--mbg)" stroke-width="5"/>
+    <ellipse cx="137" cy="188" rx="6" ry="9" fill="var(--mbg)"/><ellipse cx="163" cy="188" rx="6" ry="9" fill="var(--mbg)"/>
+    <circle cx="124" cy="139" r="9" fill="var(--mbg)"/><circle cx="176" cy="139" r="9" fill="var(--mbg)"/>
+    <path d="M116,203 Q96,198 98,172 Q108,192 124,196 Z" stroke="var(--mbg)" stroke-width="4"/>
+    <path d="M184,203 Q204,198 202,172 Q192,192 176,196 Z" stroke="var(--mbg)" stroke-width="4"/>
+  </g>
+</defs></svg>
+
+<main>
+  <h1 class="sheet">PROTOTYPE: HEMA Scorepad brand sheet</h1>
+  <p class="state" id="state"></p>
+  <div id="sheet"></div>
+</main>
+
+<div id="bar">
+  <button id="prev" aria-label="Previous variant">←</button>
+  <span id="label"></span>
+  <button id="next" aria-label="Next variant">→</button>
+</div>
+
+<script>
+const RED = '#FF5252', BLUE = '#4DA3FF';
+const VARIANTS = {
+  A: { name: 'Plain', note: 'Fiore\'s whole head centred on black. Sober lockup. Keeps every decision of #19 as it stands.' },
+  B: { name: 'The display', note: 'Fiore inside a Red and Blue ring, and sitting on the divider of the display. Uses the fencer colours as brand colours.' },
+  C: { name: 'The treatise', note: 'Face-only icon crop. The README and the social preview are a cream manuscript page with the full figure and a serif. Bends Q14 (black) outside the icon.' },
+};
+
+// The icon artwork itself: a 280-unit square, or a tight 156-unit face crop for C.
+function iconSvg(v, px, mono) {
+  const vb = v === 'C' ? [72, 78, 156, 156] : [10, 0, 280, 280];
+  const bg = mono ? '#2d3b4e' : '#000000';
+  const head = mono ? '<use href="#fiore-mono"/>' : '<use href="#fiore-head"/>';
+  let art = head;
+  if (v === 'B') {
+    const ring = mono ? '' :
+      `<path d="M150,12 A128,128 0 0 0 150,268" fill="none" stroke="${RED}" stroke-width="12"/>` +
+      `<path d="M150,12 A128,128 0 0 1 150,268" fill="none" stroke="${BLUE}" stroke-width="12"/>`;
+    art = ring + `<g transform="translate(150 140) scale(.8) translate(-150 -140)">${head}</g>`;
+  }
+  return `<svg width="${px}" height="${px}" viewBox="${vb.join(' ')}" style="--mbg:${bg};color:#c9daf5">` +
+    `<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="${bg}"/>${art}</svg>`;
+}
+function icon(v, px, round, mono, caption) {
+  return `<div class="cell"><div class="mask" style="width:${px}px;height:${px}px;border-radius:${round ? '50%' : '22%'}">${iconSvg(v, px, mono)}</div>${caption}</div>`;
+}
+function iconSection(v) {
+  return `<section><h2>Icon: Android launcher, home screen, and Android's one-colour themed icon</h2><div class="row">
+    ${icon(v, 192, false, false, '192 px')}
+    ${icon(v, 96, true, false, '96 px round')}
+    ${icon(v, 48, true, false, '48 px round')}
+    ${icon(v, 48, false, false, '48 px square')}
+    ${icon(v, 96, true, true, 'themed, 96 px')}
+    ${icon(v, 48, true, true, 'themed, 48 px')}
+    <div class="cell"><div class="home">
+      <div class="app"><div class="ph"></div><div class="lbl">Clock</div></div>
+      <div class="app"><div class="mask" style="width:56px;height:56px;border-radius:50%;margin:auto">${iconSvg(v, 56, false)}</div><div class="lbl">HEMA Scorepad</div></div>
+      <div class="app"><div class="ph"></div><div class="lbl">Camera</div></div>
+    </div>mock home screen, label in a 72 px cell</div>
+  </div></section>`;
+}
+
+const TAGLINE = 'A scoreboard for one bout of HEMA sparring.';
+
+const readme = {
+  A: () => `<div style="display:flex;align-items:center;gap:20px">
+      <div class="mask" style="width:96px;height:96px;border-radius:22%;margin:0;flex:none">${iconSvg('A', 96, false)}</div>
+      <div><h1>HEMA Scorepad</h1><p>${TAGLINE}</p></div></div>`,
+  B: () => `<svg viewBox="0 0 1000 260" style="width:100%;height:auto;display:block;border-radius:12px">
+      <rect width="1000" height="260" fill="#000"/><rect x="499" y="0" width="2" height="260" fill="#444"/>
+      <text x="250" y="195" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="190" fill="${RED}">3</text>
+      <text x="750" y="195" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="190" fill="${BLUE}">2</text>
+      <circle cx="500" cy="130" r="112" fill="#000"/>
+      <svg x="390" y="20" width="220" height="220" viewBox="10 0 280 280"><use href="#fiore-head"/></svg>
+    </svg>
+    <h1 style="text-align:center;margin-top:16px;letter-spacing:.04em">HEMA SCOREPAD</h1><p style="text-align:center">${TAGLINE}</p>`,
+  C: () => `<div style="background:#f4efe6;color:#2b1d14;border-radius:12px;padding:20px;text-align:center;font-family:Georgia,serif">
+      <svg width="200" height="213" viewBox="0 0 300 320"><use href="#fiore-full"/></svg>
+      <h1 style="font-style:italic">HEMA Scorepad</h1>
+      <p style="font-style:italic">Fiore the Boar keeps the score, so the referee can watch the fencers.</p></div>`,
+};
+
+const social = {
+  A: () => `<svg viewBox="0 0 1280 640"><rect width="1280" height="640" fill="#000"/>
+      <svg x="90" y="110" width="420" height="420" viewBox="10 0 280 280"><use href="#fiore-head"/></svg>
+      <text x="560" y="310" font-family="system-ui,sans-serif" font-weight="700" font-size="96" fill="#fff">HEMA Scorepad</text>
+      <text x="562" y="372" font-family="system-ui,sans-serif" font-size="34" fill="#ccc">${TAGLINE}</text>
+      <rect x="562" y="410" width="120" height="14" fill="${RED}"/><rect x="692" y="410" width="120" height="14" fill="${BLUE}"/></svg>`,
+  B: () => `<svg viewBox="0 0 1280 640"><rect width="1280" height="640" fill="#000"/><rect x="639" y="0" width="2" height="640" fill="#444"/>
+      <text x="300" y="470" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="400" fill="${RED}">7</text>
+      <text x="980" y="470" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="400" fill="${BLUE}">10</text>
+      <circle cx="640" cy="330" r="180" fill="#000"/>
+      <svg x="470" y="160" width="340" height="340" viewBox="10 0 280 280"><use href="#fiore-head"/></svg>
+      <rect x="380" y="26" width="520" height="92" fill="#000"/>
+      <text x="640" y="92" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="60" letter-spacing="3" fill="#fff">HEMA SCOREPAD</text>
+      <rect x="560" y="548" width="160" height="80" fill="#000"/>
+      <text x="640" y="610" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="64" fill="#fff">1:24</text></svg>`,
+  C: () => `<svg viewBox="0 0 1280 640"><rect width="1280" height="640" fill="#f4efe6"/>
+      <rect x="24" y="24" width="1232" height="592" fill="none" stroke="#6a3e25" stroke-width="3"/>
+      <svg x="70" y="50" width="506" height="540" viewBox="0 0 300 320"><use href="#fiore-full"/></svg>
+      <text x="610" y="270" font-family="Georgia,serif" font-style="italic" font-size="92" fill="#2b1d14">HEMA Scorepad</text>
+      <text x="614" y="345" font-family="Georgia,serif" font-size="38" fill="#2b1d14">Fiore the Boar keeps the score.</text>
+      <text x="614" y="400" font-family="Georgia,serif" font-style="italic" font-size="34" fill="#6b5646">He has opinions about doubles.</text>
+      <rect x="614" y="440" width="90" height="12" fill="#b3261e"/><rect x="712" y="440" width="90" height="12" fill="#1d4ed8"/></svg>`,
+};
+
+const keys = Object.keys(VARIANTS);
+function current() {
+  const v = new URLSearchParams(location.search).get('variant');
+  return keys.includes(v) ? v : 'A';
+}
+function render() {
+  const v = current();
+  document.getElementById('state').textContent = `Variant ${v} (${VARIANTS[v].name}): ${VARIANTS[v].note}`;
+  document.getElementById('label').textContent = `${v} (${VARIANTS[v].name})`;
+  document.getElementById('sheet').innerHTML =
+    iconSection(v) +
+    `<section><h2>README header, on GitHub's light and dark themes</h2><div class="gh light">${readme[v]()}</div><div class="gh dark">${readme[v]()}</div></section>` +
+    `<section class="social"><h2>GitHub social preview, 1280 × 640</h2>${social[v]()}</section>`;
+}
+function step(d) {
+  const next = keys[(keys.indexOf(current()) + d + keys.length) % keys.length];
+  const url = new URL(location.href);
+  url.searchParams.set('variant', next);
+  history.replaceState(null, '', url);
+  render();
+}
+document.getElementById('prev').onclick = () => step(-1);
+document.getElementById('next').onclick = () => step(1);
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea, [contenteditable]')) return;
+  if (e.key === 'ArrowLeft') step(-1);
+  if (e.key === 'ArrowRight') step(1);
+});
+render();
+</script>
+</body>
+</html>
