@@ -4,9 +4,10 @@
     <!-- The only permission. No INTERNET: nothing leaves the device. -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- The label is the short name: a launcher cuts "HEMA Scorepad" to "HEMA Sc…" under the icon (#55). -->
     <application
         android:allowBackup="false"
-        android:label="HEMA Scoreboard"
+        android:label="Scorepad"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
             android:name=".MainActivity"

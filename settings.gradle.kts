@@ -18,5 +18,5 @@ dependencyResolutionManagement {
         }
     }
 }
-rootProject.name = "hema-scoreboard"
+rootProject.name = "hema-scorepad"
 include(":bout", ":app")

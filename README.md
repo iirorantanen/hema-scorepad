@@ -1,6 +1,6 @@
-# HEMA Scoreboard
+# HEMA Scorepad
 
-An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sparring, operated by a referee on the sideline. It is not a tournament system.
+HEMA Scorepad is an Android scoreboard for one bout of Historical European Martial Arts (HEMA) sparring, operated by a referee on the sideline. It is not a tournament system.
 
 ## What it does
 
@@ -23,9 +23,11 @@ An Android scoreboard for one bout of Historical European Martial Arts (HEMA) sp
 
 ## Install
 
-1. On an Android phone running Android 8.0 or newer, open the [latest release](https://github.com/iirorantanen/unnamed-hema-scoring-app/releases/latest).
-2. Download `hema-scoreboard-<version>.apk` and open it.
+1. On an Android phone running Android 8.0 or newer, open the [latest release](https://github.com/iirorantanen/hema-scorepad/releases/latest).
+2. Download `hema-scorepad-<version>.apk` and open it.
 3. Allow the browser to install apps when Android asks.
+
+Android lists the app as "Scorepad". The full name does not fit under a launcher icon.
 
 ## Development
 
