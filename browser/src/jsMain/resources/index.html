@@ -4,8 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HEMA Scorepad</title>
+<!-- The home screen: the manifest gives the name, the icon and standalone display. An iPhone takes its icon from apple-touch-icon. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="scoreboard.css">
 <script src="browser.js" defer></script>
+<!-- The service worker keeps the files for use with no network connection. The development server has no sw.js, and a page served over plain HTTP from another machine gets no service worker. -->
+<script>navigator.serviceWorker?.register("sw.js").catch(() => {})</script>
 </head>
 <body>
 <!-- Screen.kt fills in the scores, the bout timer, the accessible names of the halves and the bout timer, the point log

@@ -75,6 +75,17 @@ Serve the browser version of the scoreboard on the development machine. The comm
 ./gradlew :browser:jsBrowserDevelopmentRun --continuous
 ```
 
+Check that the browser version works with no network connection. The page from the command above has no service worker, the script that keeps the files of the site in the browser: the build adds it to the site only. Build the site and serve it from the development machine. The port is not the one above, because a service worker keeps answering at its address after the server has stopped:
+
+```bash
+./gradlew :browser:jsBrowserDistribution
+python3 -m http.server 8081 --bind 127.0.0.1 --directory browser/build/dist/js/productionExecutable
+```
+
+Open `http://localhost:8081/` in a browser on the development machine, stop the server and open the address again: the scoreboard opens and awards points. A browser runs a service worker only at `localhost` or over HTTPS, so this check does not work from a phone on the same network.
+
+To check an update, start the server again, change a file of the browser version and build the site again. A page that is open keeps its version, also after a reload. Once every tab that shows the scoreboard is closed, the next one opened shows the new version.
+
 Pushing a `v*` tag publishes a signed APK as a GitHub Release. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
 
 The artwork is in [`docs/brand/`](docs/brand/):
@@ -84,13 +95,13 @@ The artwork is in [`docs/brand/`](docs/brand/):
 - `readme-header.svg` is the picture at the top of this file.
 - `social-preview.png` is the picture GitHub shows with a link to the repository. It is uploaded by hand in the repository settings and is rendered from `social-preview.svg`.
 
-The icon, the two pictures and the two layers of the Android launcher icon in `app/src/main/res/drawable/` each hold a copy of the master's shapes. After a change to the master, write them again. The command needs Python 3 and the JDK:
+The icon, the two pictures, the two layers of the Android launcher icon in `app/src/main/res/drawable/` and the three PNG files of the browser version's icon in `browser/src/jsMain/resources/` each hold a copy of the master's shapes. After a change to the master, write them again. The command needs Python 3 and the JDK:
 
 ```bash
 python3 scripts/brand/derive.py
 ```
 
-The check fails when one of those files differs from what the command writes, and names the file. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
+The check fails when one of those files differs from what the command writes, and names the file. A PNG file is drawn by `scripts/brand/Png.java` and compared by its pixels. `icon-maskable-512.png` shows the head smaller than the other two: a home screen may cut that file down to a circle of 0.4 of its width, and the head stays inside it. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
 
 Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
 
