@@ -69,5 +69,9 @@ dialog {
 dialog > div { padding: 16px; }
 dialog h1 { margin: 0; font-size: 1.25rem; }
 #points { margin: 0; padding: 0; list-style: none; white-space: pre; }
-#points li { display: flex; justify-content: space-between; padding-top: 12px; }
-dialog form { padding-top: 12px; text-align: end; }
+dialog p, #points li { display: flex; justify-content: space-between; margin: 0; padding-top: 12px; }
+.note { color: #ccc; }
+/* The last control of a row stays at its end, whether or not the others are shown. */
+dialog form, .row { display: flex; }
+dialog form { padding-top: 12px; }
+dialog form > :last-child, .row > :last-child { margin-inline-start: auto; }

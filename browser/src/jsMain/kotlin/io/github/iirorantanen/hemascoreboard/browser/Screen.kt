@@ -4,6 +4,7 @@ import io.github.iirorantanen.hemascoreboard.bout.BoutState
 import io.github.iirorantanen.hemascoreboard.bout.Fencer
 import io.github.iirorantanen.hemascoreboard.bout.RefereeAction
 import io.github.iirorantanen.hemascoreboard.bout.Scoreboard
+import io.github.iirorantanen.hemascoreboard.bout.Settings
 import io.github.iirorantanen.hemascoreboard.bout.reading
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -12,6 +13,7 @@ import kotlinx.dom.clear
 import org.w3c.dom.HTMLDialogElement
 import org.w3c.dom.HTMLElement
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private val Fencer.label get() = when (this) {
     Fencer.RED -> "Red"
@@ -23,19 +25,40 @@ private val Fencer.id get() = name.lowercase()
 
 private fun element(id: String) = document.getElementById(id) as HTMLElement
 
+/** A dialog in index.html. A tap outside closes it. */
+private fun dialog(id: String) = (element(id) as HTMLDialogElement).also { dialog ->
+    // The dialog's content fills it, so a tap that lands on the dialog itself is a tap outside.
+    dialog.onclick = { if (it.target == dialog) dialog.close() }
+}
+
 /** Draws the bout the Scoreboard holds on the page in index.html and turns taps into referee actions. Holds no scoring rules. */
 fun showScreen(scoreboard: Scoreboard) {
     fun handle(action: RefereeAction) = draw(scoreboard.handle(action))
     Fencer.entries.forEach { fencer -> element(fencer.id).onclick = { handle(RefereeAction.AwardPoint(fencer)) } }
     element("timer").onclick = { handle(RefereeAction.ToggleTimer) }
     element("undo").onclick = { handle(RefereeAction.Undo) }
-    val pointLog = element("point-log") as HTMLDialogElement
+    val pointLog = dialog("point-log")
     element("log").onclick = {
         drawPointLog(scoreboard.bout)
         pointLog.showModal()
     }
-    // The dialog's content fills it, so a tap that lands on the dialog itself is a tap outside.
-    pointLog.onclick = { if (it.target == pointLog) pointLog.close() }
+    element("swap").onclick = { handle(RefereeAction.SwapSides) }
+    // Asks before a new bout clears the current one. Cancel, a tap outside and back send no referee action.
+    val confirmation = dialog("new-bout-confirmation")
+    element("new-bout").onclick = { confirmation.showModal() }
+    element("confirm-new-bout").onclick = { handle(RefereeAction.NewBout) }
+    val settings = dialog("settings-dialog")
+    element("settings").onclick = { settings.showModal() }
+    // The bout rules stop a step below the lowest bout length and point cap.
+    fun change(id: String, changed: Settings.() -> Settings) {
+        element(id).onclick = { handle(RefereeAction.ChangeSettings(scoreboard.bout.nextSettings.changed())) }
+    }
+    change("bout-length-down") { copy(boutLength = boutLength - 30.seconds) }
+    change("bout-length-up") { copy(boutLength = boutLength + 30.seconds) }
+    change("bout-length-switch") { copy(timerOn = !timerOn) }
+    change("point-cap-down") { copy(pointCap = pointCap - 1) }
+    change("point-cap-up") { copy(pointCap = pointCap + 1) }
+    change("point-cap-switch") { copy(pointCapOn = !pointCapOn) }
     // A long press opens no browser menu.
     document.addEventListener("contextmenu", { it.preventDefault() })
     draw(scoreboard.bout)
@@ -58,7 +81,24 @@ private fun draw(bout: BoutState) {
         // The style sheet sizes the digits to fit the half.
         half.style.setProperty("--digits", score.length.toString())
     }
+    // The halves are in the page in the order of the side arrangement, so a screen reader meets them left to right.
+    val halves = element("halves")
+    val left = if (bout.sidesSwapped) Fencer.BLUE else Fencer.RED
+    if (halves.firstElementChild!!.id != left.id) halves.appendChild(halves.firstElementChild!!)
     drawTimer(bout)
+    drawSetting("bout-length", bout.nextSettings.boutLength.reading(), bout.nextSettings.timerOn)
+    drawSetting("point-cap", bout.nextSettings.pointCap.toString(), bout.nextSettings.pointCapOn)
+}
+
+/** One setting the referee has chosen, in the settings of index.html. */
+private fun drawSetting(id: String, value: String, on: Boolean) {
+    element("$id-value").textContent = if (on) value else "Off"
+    // Hidden while off, where a step would change a value the referee cannot see.
+    element("$id-down").hidden = !on
+    element("$id-up").hidden = !on
+    val switch = element("$id-switch")
+    switch.textContent = if (on) "Switch off" else "Switch on"
+    switch.setAttribute("aria-label", "Switch the ${id.replace('-', ' ')} ${if (on) "off" else "on"}")
 }
 
 private fun drawTimer(bout: BoutState) {
