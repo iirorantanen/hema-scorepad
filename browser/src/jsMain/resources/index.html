@@ -21,6 +21,8 @@
     <button id="blue" class="half blue"><span></span></button>
   </div>
   <button id="timer"><span id="last-exchange" hidden>Last exchange</span><span></span></button>
+  <!-- A screen reader says what Screen.kt writes here. It reads the accessible name of the bout timer only on focus. -->
+  <p id="announcement" aria-live="polite"></p>
   <div id="controls">
     <button id="undo" aria-label="Undo the most recent point">Undo</button>
     <button id="log" aria-label="Show the point log">Log</button>

@@ -31,7 +31,10 @@ private fun dialog(id: String) = (element(id) as HTMLDialogElement).also { dialo
     dialog.onclick = { if (it.target == dialog) dialog.close() }
 }
 
-/** Draws the bout the Scoreboard holds on the page in index.html and turns taps into referee actions. Holds no scoring rules. */
+/**
+ * Draws the bout the Scoreboard holds on the page in index.html, turns taps into referee actions, and passes on
+ * elapsed time and the page becoming hidden. Holds no scoring rules.
+ */
 fun showScreen(scoreboard: Scoreboard) {
     fun handle(action: RefereeAction) = draw(scoreboard.handle(action))
     Fencer.entries.forEach { fencer -> element(fencer.id).onclick = { handle(RefereeAction.AwardPoint(fencer)) } }
@@ -119,6 +122,9 @@ private fun drawTimer(bout: BoutState) {
     timer.classList.toggle("running", bout.timerRunning)
     element("last-exchange").hidden = !bout.inLastExchange
     timer.lastElementChild!!.textContent = reading
+    // Written only when it changes, so a screen reader says "Last exchange" once, as the Android app's live region does.
+    val announcement = if (bout.inLastExchange) element("last-exchange").textContent else ""
+    if (element("announcement").textContent != announcement) element("announcement").textContent = announcement
 }
 
 /** Every point still standing, oldest first. */
