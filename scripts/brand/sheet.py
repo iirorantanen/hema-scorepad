@@ -12,8 +12,9 @@ from pathlib import Path
 BRAND = Path(__file__).resolve().parents[2] / 'docs/brand'
 icon = (BRAND / 'icon.svg').read_text()
 mono = re.search(r'id="fiore-mono" fill-rule="evenodd" d="([^"]+)"', (BRAND / 'fiore.svg').read_text()).group(1)
+box = re.search(r'viewBox="([^"]+)"', icon).group(1)
 # The colours a launcher picks are its own; these two stand in for them.
-themed = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 -4 288 288"><rect x="6" y="-4" width="288" height="288" fill="#2d3b4e"/>'
+themed = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{box}"><rect x="{box.split()[0]}" y="{box.split()[1]}" width="100%" height="100%" fill="#2d3b4e"/>'
           f'<path fill="#c9daf5" fill-rule="evenodd" d="{mono}"/></svg>')
 
 

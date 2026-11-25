@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     The foreground of the launcher icon: the head of Fiore the Boar, the shapes of docs/brand/fiore.svg as paths.
-    The feather reaches 132.6 units from the centre of the face. In a viewport of 436 units that is 32.8 dp,
-    inside the circle of radius 33 dp that no launcher mask cuts.
+    The head without its feather reaches 32.8 dp from the centre of the icon,
+    inside the circle of radius 33 dp that no launcher mask cuts. The feather reaches 40.6 dp, and a mask cuts its tip.
     Written by scripts/brand/derive.py.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="436"
-    android:viewportHeight="436">
-    <!-- Moves the centre of the face, (150,140) in the master, to the centre of the icon. -->
-    <group android:translateX="68" android:translateY="78">
+    android:viewportWidth="327"
+    android:viewportHeight="327">
+    <!-- Moves (150,120.75) in the master, the centre of the head without its feather, to the centre of the icon. -->
+    <group android:translateX="13.5" android:translateY="42.75">
         <path android:fillColor="#3D2416" android:pathData="M112,92L120,60L130,88L140,54L150,86L160,54L170,88L180,60L188,92Z" />
         <path android:fillColor="#6A3E25" android:pathData="M78,110L70,62L112,92Z" />
         <path android:fillColor="#C98A6E" android:pathData="M84,104L78,74L104,94Z" />

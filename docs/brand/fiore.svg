@@ -2,8 +2,9 @@
   <title>Fiore the Boar</title>
   <!--
     The master of Fiore the Boar, the mascot of HEMA Scorepad, cleaned up from the owner's sketch "Maestro Porco".
-    The view box is the square of the icon. Its centre, (150,140), is the centre of the face.
-    Every shape is within 133 units of that centre, so a round mask of the square, radius 144, cuts nothing.
+    The view box is the square the README header, the social preview and icon-192.png and icon-512.png of the browser version show.
+    Its centre, (150,140), is the centre of the face, and every shape is within 133 units of that centre.
+    The launcher icon and icon.svg show a smaller square around the head without its feather, which cuts the tip of the feather (scripts/brand/derive.py).
     The browns are Fiore's own and are not colours of the display.
   -->
   <g id="fiore-head">

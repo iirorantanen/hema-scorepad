@@ -7,6 +7,7 @@
 social-preview.png is not written here: its text takes the font of the machine that renders it (README, Development).
 The PNG files of the icon are drawn by Png.java, which compares their pixels.
 """
+import math
 import re
 import subprocess
 import sys
@@ -18,6 +19,12 @@ ROOT = Path(__file__).resolve().parents[2]
 BRAND = 'docs/brand'
 DRAWABLE = 'app/src/main/res/drawable'
 WEB = 'browser/src/jsMain/resources'
+# The launcher icon and the icon SVG (#58): the head without its feather is centred and fills the circle of 33 dp that no launcher mask cuts.
+# The ear tips, (70,62) and (230,62), and the chin, (150,220), lie on a circle of radius 99.25 around this centre.
+CX, CY = 150, 120.75
+VIEWPORT = 327  # the units across the 108 dp of a launcher layer, which puts the circle of 33 dp at 99.9 units
+SIDE = VIEWPORT * 2 // 3  # the 72 dp in the middle of a layer: the square a launcher masks, and the icon SVG
+FEATHER = '#f2c94c'
 # The icon of the browser version: the file, its pixels, and the square of the master it shows as x, y and side.
 # A home screen may cut a maskable icon down to the circle of 0.4 of its width around its centre.
 # The head reaches 133 units from the centre of the face, and 0.4 of 336 is 134.
@@ -50,6 +57,41 @@ def path_data(el):
     return f'M{cx - rx:g},{cy:g}a{rx:g},{ry:g} 0 1,0 {2 * rx:g},0a{rx:g},{ry:g} 0 1,0 {-2 * rx:g},0Z'
 
 
+def reach(spots):
+    """How far the farthest of the points is from the centre of the icon, in dp."""
+    return max(math.hypot(x - CX, y - CY) for x, y in spots) * 108 / VIEWPORT
+
+
+def points(el):
+    """Points on the outline of a shape of the head, with its stroke left out. A curve gives 16 of them."""
+    a = el.attrib
+    if el.tag in ('polygon', 'path'):
+        assert not re.search(r'[A-Za-z]', re.sub('[MLQZ]', '', a.get('d', ''))), 'points() reads the path commands M, L, Q and Z only'
+        found = []
+        for command, numbers in re.findall(r'([MLQ]?)([^MLQZ]+)', a.get('points') or a['d']):
+            n = [float(v) for v in re.findall(r'-?[\d.]+', numbers)]
+            ends = list(zip(n[::2], n[1::2]))
+            if command == 'Q':
+                (x0, y0), (x1, y1), (x2, y2) = found[-1], *ends
+                ends = [((1 - t) ** 2 * x0 + 2 * t * (1 - t) * x1 + t * t * x2, (1 - t) ** 2 * y0 + 2 * t * (1 - t) * y1 + t * t * y2)
+                        for t in (i / 16 for i in range(1, 17))]
+            found += ends
+        return found
+    cx, cy = float(a['cx']), float(a['cy'])
+    rx, ry = (float(a['r']),) * 2 if el.tag == 'circle' else (float(a['rx']), float(a['ry']))
+    return [(cx + rx * math.cos(math.radians(t)), cy + ry * math.sin(math.radians(t))) for t in range(360)]
+
+
+shapes = list(ET.fromstring(head))
+bare = [p for el in shapes if el.get('fill') != FEATHER for p in points(el)]
+feather = [p for el in shapes if el.get('fill') == FEATHER for p in points(el)]
+# The head without its feather touches the circle left of the centre, right of it and below it: it fills the circle and is centred in it.
+for name, half in ('left', lambda x, y: x < CX), ('right', lambda x, y: x > CX), ('bottom', lambda x, y: y > CY):
+    r = reach(p for p in bare if half(*p))
+    assert 32 <= r <= 33, f'the {name} of the head without its feather reaches {r:.1f} dp, not 32 to 33 dp'
+assert reach(feather) > 33, 'the feather stays inside the circle of 33 dp'
+
+
 def drawable_path(el):
     a = el.attrib
     attrs = []
@@ -73,10 +115,10 @@ def vector(comment, body):
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="436"
-    android:viewportHeight="436">
-    <!-- Moves the centre of the face, (150,140) in the master, to the centre of the icon. -->
-    <group android:translateX="68" android:translateY="78">
+    android:viewportWidth="{VIEWPORT}"
+    android:viewportHeight="{VIEWPORT}">
+    <!-- Moves ({CX:g},{CY:g}) in the master, the centre of the head without its feather, to the centre of the icon. -->
+    <group android:translateX="{VIEWPORT / 2 - CX:g}" android:translateY="{VIEWPORT / 2 - CY:g}">
 {body}
     </group>
 </vector>
@@ -85,10 +127,10 @@ def vector(comment, body):
 
 files = {
     f'{BRAND}/fiore.svg': master,
-    f'{BRAND}/icon.svg': f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 -4 288 288">
+    f'{BRAND}/icon.svg': f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="{CX - SIDE / 2:g} {CY - SIDE / 2:g} {SIDE} {SIDE}">
   <title>HEMA Scorepad icon: the head of Fiore the Boar on black</title>
-  <!-- The icon: the head of fiore.svg on the black of the display. A launcher or a browser cuts the square to its own mask. -->
-  <rect x="6" y="-4" width="288" height="288" fill="#000000"/>
+  <!-- The icon: the head of fiore.svg on the black of the display, in the square a launcher masks. The square cuts the tip of the feather, and a round mask cuts more of it. -->
+  <rect x="{CX - SIDE / 2:g}" y="{CY - SIDE / 2:g}" width="{SIDE}" height="{SIDE}" fill="#000000"/>
 {head}</svg>
 ''',
     f'{BRAND}/readme-header.svg': f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 260">
@@ -121,9 +163,9 @@ files = {
 ''',
     f'{DRAWABLE}/ic_launcher_foreground.xml': vector(
         '    The foreground of the launcher icon: the head of Fiore the Boar, the shapes of docs/brand/fiore.svg as paths.\n'
-        '    The feather reaches 132.6 units from the centre of the face. In a viewport of 436 units that is 32.8 dp,\n'
-        '    inside the circle of radius 33 dp that no launcher mask cuts.',
-        '\n'.join(drawable_path(el) for el in ET.fromstring(head)),
+        f'    The head without its feather reaches {reach(bare):.1f} dp from the centre of the icon,\n'
+        f'    inside the circle of radius 33 dp that no launcher mask cuts. The feather reaches {reach(feather):.1f} dp, and a mask cuts its tip.',
+        '\n'.join(drawable_path(el) for el in shapes),
     ),
     f'{DRAWABLE}/ic_launcher_monochrome.xml': vector(
         '    The one-colour layer of the launcher icon, for themed icons: the path fiore-mono of docs/brand/fiore.svg.\n'

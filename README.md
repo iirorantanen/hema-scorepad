@@ -152,7 +152,7 @@ When the second job fails on a setting, the GitHub Release is already published.
 The artwork is in [`docs/brand/`](docs/brand/):
 
 - `fiore.svg` is the master of Fiore the Boar: the head in colour and, under the id `fiore-mono`, its one-colour form.
-- `icon.svg` is the icon, the head on black.
+- `icon.svg` is the icon, the head on black, in the square an Android launcher masks.
 - `readme-header.svg` is the picture at the top of this file.
 - `social-preview.png` is the picture GitHub shows with a link to the repository. It is uploaded by hand in the repository settings and is rendered from `social-preview.svg`.
 
@@ -162,7 +162,7 @@ The icon, the two pictures, the two layers of the Android launcher icon in `app/
 python3 scripts/brand/derive.py
 ```
 
-The check fails when one of those files differs from what the command writes, and names the file. A PNG file is drawn by `scripts/brand/Png.java` and compared by its pixels. `icon-maskable-512.png` shows the head smaller than the other two: a home screen may cut that file down to a circle of 0.4 of its width, and the head stays inside it. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
+The check fails when one of those files differs from what the command writes, and names the file. It also fails when the head without its feather no longer fills the circle of 33 dp that no launcher mask cuts: `CX`, `CY` and `VIEWPORT` in the script place the head in the launcher icon. A PNG file is drawn by `scripts/brand/Png.java` and compared by its pixels. `icon-maskable-512.png` shows the head smaller than the other two: a home screen may cut that file down to a circle of 0.4 of its width, and the head stays inside it. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
 
 Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
 
