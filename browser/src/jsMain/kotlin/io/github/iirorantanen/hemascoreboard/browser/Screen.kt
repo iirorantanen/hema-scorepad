@@ -61,6 +61,11 @@ fun showScreen(scoreboard: Scoreboard) {
     change("point-cap-switch") { copy(pointCapOn = !pointCapOn) }
     // A long press opens no browser menu.
     document.addEventListener("contextmenu", { it.preventDefault() })
+    // A hidden page is no longer in front of the referee: another tab or app is, the browser is minimised or the phone is locked.
+    // A hidden page also gets no frames, so the bout timer has to be paused here for the time away not to count.
+    document.addEventListener("visibilitychange", {
+        if (document.asDynamic().visibilityState == "hidden") draw(scoreboard.leaveForeground())
+    })
     draw(scoreboard.bout)
     // Frame times are the clock: each frame tells the Scoreboard how long the last one took.
     var last = window.performance.now()
