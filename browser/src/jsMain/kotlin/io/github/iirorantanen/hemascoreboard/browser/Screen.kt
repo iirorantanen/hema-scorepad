@@ -6,10 +6,12 @@ import io.github.iirorantanen.hemascoreboard.bout.RefereeAction
 import io.github.iirorantanen.hemascoreboard.bout.Scoreboard
 import io.github.iirorantanen.hemascoreboard.bout.reading
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.dom.appendElement
 import kotlinx.dom.clear
 import org.w3c.dom.HTMLDialogElement
 import org.w3c.dom.HTMLElement
+import kotlin.time.Duration.Companion.milliseconds
 
 private val Fencer.label get() = when (this) {
     Fencer.RED -> "Red"
@@ -25,6 +27,7 @@ private fun element(id: String) = document.getElementById(id) as HTMLElement
 fun showScreen(scoreboard: Scoreboard) {
     fun handle(action: RefereeAction) = draw(scoreboard.handle(action))
     Fencer.entries.forEach { fencer -> element(fencer.id).onclick = { handle(RefereeAction.AwardPoint(fencer)) } }
+    element("timer").onclick = { handle(RefereeAction.ToggleTimer) }
     element("undo").onclick = { handle(RefereeAction.Undo) }
     val pointLog = element("point-log") as HTMLDialogElement
     element("log").onclick = {
@@ -36,15 +39,41 @@ fun showScreen(scoreboard: Scoreboard) {
     // A long press opens no browser menu.
     document.addEventListener("contextmenu", { it.preventDefault() })
     draw(scoreboard.bout)
+    // Frame times are the clock: each frame tells the Scoreboard how long the last one took.
+    var last = window.performance.now()
+    fun frame(now: Double) {
+        if (scoreboard.bout.timerRunning) drawTimer(scoreboard.elapse((now - last).milliseconds))
+        last = now
+        window.requestAnimationFrame(::frame)
+    }
+    window.requestAnimationFrame(::frame)
 }
 
-private fun draw(bout: BoutState) = Fencer.entries.forEach { fencer ->
-    val score = bout.score(fencer).toString()
-    val half = element(fencer.id)
-    half.setAttribute("aria-label", "${fencer.label} $score, award a point")
-    half.firstElementChild!!.textContent = score
-    // The style sheet sizes the digits to fit the half.
-    half.style.setProperty("--digits", score.length.toString())
+private fun draw(bout: BoutState) {
+    Fencer.entries.forEach { fencer ->
+        val score = bout.score(fencer).toString()
+        val half = element(fencer.id)
+        half.setAttribute("aria-label", "${fencer.label} $score, award a point")
+        half.firstElementChild!!.textContent = score
+        // The style sheet sizes the digits to fit the half.
+        half.style.setProperty("--digits", score.length.toString())
+    }
+    drawTimer(bout)
+}
+
+private fun drawTimer(bout: BoutState) {
+    val timer = element("timer")
+    timer.hidden = !bout.settings.timerOn
+    val reading = bout.timeRemaining.reading()
+    val name = "Bout timer $reading" + (if (bout.inLastExchange) ", last exchange" else "") +
+        if (bout.timerRunning) ", pause" else ", start"
+    // The accessible name says everything the bout timer shows. A running bout timer is drawn every frame,
+    // and only a changed name touches the page.
+    if (timer.getAttribute("aria-label") == name) return
+    timer.setAttribute("aria-label", name)
+    timer.classList.toggle("running", bout.timerRunning)
+    element("last-exchange").hidden = !bout.inLastExchange
+    timer.lastElementChild!!.textContent = reading
 }
 
 /** Every point still standing, oldest first. */
