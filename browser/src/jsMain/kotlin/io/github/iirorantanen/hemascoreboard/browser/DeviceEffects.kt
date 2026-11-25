@@ -1,6 +1,7 @@
 package io.github.iirorantanen.hemascoreboard.browser
 
 import io.github.iirorantanen.hemascoreboard.bout.Signal
+import kotlinx.browser.document
 import kotlinx.browser.window
 
 // The Android app's timings (its DeviceEffects.kt).
@@ -46,4 +47,16 @@ private fun playNext() {
     if (timings == null) return
     window.navigator.vibrate(timings)
     window.setTimeout(::playNext, timings.sum() + BETWEEN_SIGNALS_MS)
+}
+
+/**
+ * Keeps the screen awake while the page is visible, where the browser has a wake lock. Where it has none, the screen may lock.
+ * The referee watches the fencers, not the display: it must not dim or lock while the scoreboard is in front.
+ */
+fun keepScreenAwake() {
+    // The browser may refuse, in battery saver for example, and refuses a hidden page. The scoreboard works either way.
+    fun request() = window.navigator.asDynamic().wakeLock?.request("screen")?.catch { }
+    request()
+    // The browser releases the wake lock when the page is hidden, so every return to the page asks again.
+    document.addEventListener("visibilitychange", { request() })
 }
