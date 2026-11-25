@@ -5,6 +5,7 @@
     python3 scripts/brand/derive.py --check   fails when a file differs from what would be written
 
 social-preview.png is not written here: its text takes the font of the machine that renders it (README, Development).
+The PNG files of the icon are drawn by Png.java, which compares their pixels.
 """
 import re
 import subprocess
@@ -16,6 +17,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 BRAND = 'docs/brand'
 DRAWABLE = 'app/src/main/res/drawable'
+WEB = 'browser/src/jsMain/resources'
+# The icon of the browser version: the file, its pixels, and the square of the master it shows as x, y and side.
+# A home screen may cut a maskable icon down to the circle of 0.4 of its width around its centre.
+# The head reaches 133 units from the centre of the face, and 0.4 of 336 is 134.
+PNG = {
+    'icon-192.png': (192, 6, -4, 288),
+    'icon-512.png': (512, 6, -4, 288),
+    'icon-maskable-512.png': (512, -18, -28, 336),
+}
 MONO = re.compile(r'(id="fiore-mono" fill-rule="evenodd" d=")[^"]*(")')
 FONT = 'font-family="system-ui, sans-serif" font-weight="700"'
 
@@ -122,12 +132,22 @@ files = {
     ),
 }
 
+
+def png(*mode):
+    """Writes the PNG files of the icon, or with --check names the ones that differ. False when one differs."""
+    squares = [str(v) for name, square in PNG.items() for v in (f'{WEB}/{name}', *square)]
+    java = ['java', '-Djava.awt.headless=true', 'scripts/brand/Png.java', *mode, f'{BRAND}/fiore.svg']
+    return subprocess.run(java + squares, cwd=ROOT).returncode == 0
+
+
 if '--check' in sys.argv[1:]:
     stale = [name for name, text in files.items() if (ROOT / name).read_text() != text]
     for name in stale:
         print(f'{name} differs from what scripts/brand/derive.py writes', file=sys.stderr)
-    if stale:
+    if not png('--check') or stale:
         sys.exit('Run: python3 scripts/brand/derive.py')
 else:
     for name, text in files.items():
         (ROOT / name).write_text(text)
+    if not png():
+        sys.exit(1)

@@ -84,13 +84,13 @@ The artwork is in [`docs/brand/`](docs/brand/):
 - `readme-header.svg` is the picture at the top of this file.
 - `social-preview.png` is the picture GitHub shows with a link to the repository. It is uploaded by hand in the repository settings and is rendered from `social-preview.svg`.
 
-The icon, the two pictures and the two layers of the Android launcher icon in `app/src/main/res/drawable/` each hold a copy of the master's shapes. After a change to the master, write them again. The command needs Python 3 and the JDK:
+The icon, the two pictures, the two layers of the Android launcher icon in `app/src/main/res/drawable/` and the three PNG files of the browser version's icon in `browser/src/jsMain/resources/` each hold a copy of the master's shapes. After a change to the master, write them again. The command needs Python 3 and the JDK:
 
 ```bash
 python3 scripts/brand/derive.py
 ```
 
-The check fails when one of those files differs from what the command writes, and names the file. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
+The check fails when one of those files differs from what the command writes, and names the file. A PNG file is drawn by `scripts/brand/Png.java` and compared by its pixels. `icon-maskable-512.png` shows the head smaller than the other two: a home screen may cut that file down to a circle of 0.4 of its width, and the head stays inside it. The one-colour form is computed by `scripts/brand/Mono.java`, where the shapes it is made of are typed a second time: a change to the shape of the head is repeated there.
 
 Render the social preview again after a change to its SVG. The digits and the name take the default font of the machine that renders it:
 
