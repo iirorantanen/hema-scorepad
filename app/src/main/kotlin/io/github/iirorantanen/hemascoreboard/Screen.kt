@@ -294,6 +294,8 @@ private fun RowScope.Half(fencer: Fencer, score: Int, onAction: (RefereeAction) 
             text = score.toString(),
             modifier = Modifier.semantics { contentDescription = "${fencer.label} $score" },
             style = TextStyle(color = fencer.colour, fontWeight = FontWeight.Bold),
+            // Without wrapping, a score wider than the half counts as overflow, so auto-size shrinks it to the width.
+            softWrap = false,
             maxLines = 1,
             autoSize = TextAutoSize.StepBased(minFontSize = 48.sp, maxFontSize = 400.sp, stepSize = 8.sp),
         )
