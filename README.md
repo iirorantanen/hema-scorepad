@@ -69,6 +69,12 @@ Build the app and install it on a connected device or emulator:
 ./gradlew :app:installDebug
 ```
 
+Serve the browser version of the scoreboard on the development machine. The command prints the address, `http://localhost:8080/` while that port is free, and a second address that a phone on the same network can open. It keeps running and builds the page again after a change to the code:
+
+```bash
+./gradlew :browser:jsBrowserDevelopmentRun --continuous
+```
+
 Pushing a `v*` tag publishes a signed APK as a GitHub Release. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
 
 The artwork is in [`docs/brand/`](docs/brand/):

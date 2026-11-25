@@ -19,4 +19,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "hema-scorepad"
-include(":bout", ":app")
+include(":bout", ":app", ":browser")

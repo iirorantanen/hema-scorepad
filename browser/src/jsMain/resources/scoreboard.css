@@ -1,0 +1,64 @@
+/* One fixed high-contrast theme, with the colours and sizes of the Android app's Screen.kt. */
+html, body { height: 100%; margin: 0; }
+body {
+  overflow: hidden;
+  overscroll-behavior: none; /* no pull-to-refresh */
+  background: #000;
+  color: #fff;
+  font: 1.125rem system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  /* A long press or a drag selects no text and, on an iPhone, opens no menu. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Lightened from pure red and blue so both stay readable on black. */
+.red { color: #ff5252; }
+.blue { color: #4da3ff; }
+
+/* No double-tap zoom, no pinch and no scroll: every touch on the scoreboard is a tap. */
+main { height: 100%; display: flex; flex-direction: column; touch-action: none; }
+
+button {
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0;
+  border: 0;
+  padding: 12px 8px;
+  background: none;
+  color: #ccc;
+  font: inherit;
+}
+
+/* The gap between the halves shows this background: the divider. */
+#halves { flex: 1; min-height: 0; display: flex; gap: 2px; background: #444; }
+.half {
+  flex: 1;
+  min-width: 0;
+  padding: 16px;
+  background: #000;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+/* As large as the half allows: a digit is about 0.6 of the font size wide. */
+.half span { font-size: min(130cqw / var(--digits), 80cqh); font-weight: bold; line-height: 1; }
+
+/* The top padding is a dead strip, so a tap slightly high on a control lands on nothing. */
+#controls { display: flex; justify-content: space-between; padding-top: 12px; }
+
+dialog {
+  width: calc(100% - 32px);
+  max-width: 480px;
+  max-height: calc(100% - 32px);
+  border: 0;
+  padding: 0;
+  background: #202020;
+  color: #fff;
+  touch-action: pan-y; /* a long point log scrolls */
+}
+dialog > div { padding: 16px; }
+dialog h1 { margin: 0; font-size: 1.25rem; }
+#points { margin: 0; padding: 0; list-style: none; white-space: pre; }
+#points li { display: flex; justify-content: space-between; padding-top: 12px; }
+dialog form { padding-top: 12px; text-align: end; }

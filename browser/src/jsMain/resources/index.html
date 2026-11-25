@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HEMA Scorepad</title>
+<link rel="stylesheet" href="scoreboard.css">
+<script src="browser.js" defer></script>
+</head>
+<body>
+<!-- Screen.kt fills in the scores, the accessible names of the halves and the point log. -->
+<main>
+  <div id="halves">
+    <button id="red" class="half red"><span></span></button>
+    <button id="blue" class="half blue"><span></span></button>
+  </div>
+  <div id="controls">
+    <button id="undo" aria-label="Undo the most recent point">Undo</button>
+    <button id="log" aria-label="Show the point log">Log</button>
+  </div>
+</main>
+<dialog id="point-log" aria-labelledby="point-log-title">
+  <div>
+    <h1 id="point-log-title"></h1>
+    <ol id="points"></ol>
+    <!-- A phone without a back button, and a screen reader, need a control that closes the point log. -->
+    <form method="dialog"><button aria-label="Close the point log">Close</button></form>
+  </div>
+</dialog>
+</body>
+</html>
