@@ -41,8 +41,7 @@ The browser version is the scoreboard at a web address:
 
 <https://iirorantanen.github.io/hema-scorepad/>
 
-It needs no install and no account. It is made for current Safari on an iPhone and current Chrome on an Android phone. The address answers from the first release after v1.0. Before that release it shows GitHub's page for a site that does not exist.
-
+It needs no install and no account. It is made for current Safari on an iPhone and current Chrome on an Android phone.
 Open the address once with a network connection. The browser then keeps the files of the scoreboard, and the scoreboard opens with no network connection, in a sports hall for example.
 
 Add the scoreboard to the home screen. Opened from there it fills the screen, with no address bar.
