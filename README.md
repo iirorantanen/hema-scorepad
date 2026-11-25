@@ -177,3 +177,7 @@ python3 scripts/brand/sheet.py build/icon-sheet.html
 ```
 
 The project's vocabulary (bout, fencer, referee, signal and so on) is defined in [GLOSSARY.md](GLOSSARY.md).
+
+## Licence
+
+HEMA Scorepad is under the [MIT licence](LICENSE). The licence covers the code and the artwork, Fiore the Boar included.
