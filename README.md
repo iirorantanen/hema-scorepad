@@ -75,6 +75,17 @@ Serve the browser version of the scoreboard on the development machine. The comm
 ./gradlew :browser:jsBrowserDevelopmentRun --continuous
 ```
 
+Check that the browser version works with no network connection. The page from the command above has no service worker, the script that keeps the files of the site in the browser: the build adds it to the site only. Build the site and serve it from the development machine. The port is not the one above, because a service worker keeps answering at its address after the server has stopped:
+
+```bash
+./gradlew :browser:jsBrowserDistribution
+python3 -m http.server 8081 --bind 127.0.0.1 --directory browser/build/dist/js/productionExecutable
+```
+
+Open `http://localhost:8081/` in a browser on the development machine, stop the server and open the address again: the scoreboard opens and awards points. A browser runs a service worker only at `localhost` or over HTTPS, so this check does not work from a phone on the same network.
+
+To check an update, start the server again, change a file of the browser version and build the site again. A page that is open keeps its version, also after a reload. Once every tab that shows the scoreboard is closed, the next one opened shows the new version.
+
 Pushing a `v*` tag publishes a signed APK as a GitHub Release. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
 
 The artwork is in [`docs/brand/`](docs/brand/):
