@@ -19,6 +19,12 @@ install)
     ./gradlew -q :app:installDebug
     "$ADB" shell am start -W -n "$APP/.MainActivity" | grep Status
     ;;
+fresh)
+    # A stored bout survives an emulator restart, so a launch alone can open mid-bout.
+    "$ADB" shell pm clear "$APP"
+    "$ADB" shell am start -W -n "$APP/.MainActivity" | grep Status
+    [ "$(scripts/emulator.sh display | grep -cE '\|(Red|Blue) 0$')" = 2 ] || { echo "the display is not at 0-0" >&2; exit 1; }
+    ;;
 display)
     # One line per element: its bounds, its text and, after the |, its description for a screen reader.
     "$ADB" exec-out uiautomator dump /dev/tty | tr '>' '\n' |
@@ -26,6 +32,9 @@ display)
     ;;
 shot)
     "$ADB" exec-out screencap -p >"$2"
+    ;;
+compare)
+    java -Djava.awt.headless=true scripts/Compare.java "$2" "$3"
     ;;
 stop)
     "$ADB" emu kill
@@ -35,7 +44,7 @@ adb)
     exec "$ADB" "$@"
     ;;
 *)
-    echo "usage: scripts/emulator.sh boot | install | display | shot <file.png> | stop | adb <arguments>" >&2
+    echo "usage: scripts/emulator.sh boot | install | fresh | display | shot <file.png> | compare <a.png> <b.png> | stop | adb <arguments>" >&2
     exit 2
     ;;
 esac

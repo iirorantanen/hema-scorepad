@@ -56,7 +56,16 @@ scripts/emulator.sh install
 
 Done when it prints `Installed on 1 device.` and `Status: ok`.
 
-The scoreboard keeps the bout and the settings between app launches. `scripts/emulator.sh adb shell pm clear io.github.iirorantanen.hemascoreboard` before the launch erases everything it stored, so the app launches as after a first install.
+The scoreboard keeps the bout and the settings between app launches, and they survive an emulator restart. A check that starts from 0–0 and the default settings begins with:
+
+```bash
+scripts/emulator.sh fresh
+```
+
+It erases everything the app stored, launches the app as after a first install and reads the display. Done when it prints `Success` and `Status: ok` and exits 0.
+
+- `the display is not at 0-0`: something else is on the display, a system dialog for example. Step 5 reads it.
+- `Failed`: the erase did not happen. Seen once, on 2026-11-25, with a build an earlier session had installed; after `scripts/emulator.sh install` the erase succeeded. The cause is unknown.
 
 ## 5. Read the display
 
@@ -74,7 +83,13 @@ As a screenshot, read as an image. A relative path is taken from the repo root, 
 scripts/emulator.sh shot build/display.png
 ```
 
-A ticket that asks for the display to be unchanged gets two screenshots in one boot: the first of `HEAD` (`git stash -u`, step 4, the screenshot, `git stash pop`), the second of the change after step 4 again. The two are compared below the status bar, from y = 150 down, because the clock above it changes.
+A ticket that asks for the display to be unchanged gets two screenshots in one boot: the first of `HEAD` (`git stash -u`, step 4, the screenshot, `git stash pop`), the second of the change after step 4 again. The two are compared below the status bar, from y = 150 down, because the clock above it changes:
+
+```bash
+scripts/emulator.sh compare build/before.png build/after.png
+```
+
+Done when it prints `identical`. `differs in [x1,y1][x2,y2]` gives the box that holds every differing pixel, in the form of the bounds above.
 
 ## 6. Tap
 
