@@ -264,4 +264,23 @@ class ScoreboardTest {
         assertEquals(8.seconds, bout.timeRemaining)
         assertTrue(bout.timerRunning)
     }
+
+    @Test
+    fun `a bout timer reading is rounded up to whole seconds, so it shows zero only once the bout timer has stopped`() {
+        val scoreboard = Scoreboard(InMemoryBoutStore()) {}
+        val full = scoreboard.bout.timeRemaining.reading()
+        scoreboard.handle(RefereeAction.ToggleTimer)
+
+        scoreboard.elapse(1.minutes + 54.seconds + 500.milliseconds)
+        val logged = scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED)).log.single().timeRemaining.reading()
+        val almostOut = scoreboard.elapse(1.minutes + 5.seconds + 499.milliseconds)
+        val out = scoreboard.elapse(1.milliseconds)
+
+        assertEquals("3:00", full)
+        assertEquals("1:06", logged)
+        assertEquals("0:01", almostOut.timeRemaining.reading())
+        assertTrue(almostOut.timerRunning)
+        assertEquals("0:00", out.timeRemaining.reading())
+        assertFalse(out.timerRunning)
+    }
 }

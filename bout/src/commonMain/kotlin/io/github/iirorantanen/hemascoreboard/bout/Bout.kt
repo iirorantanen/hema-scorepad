@@ -63,6 +63,15 @@ private inline fun <T> readOrNull(read: () -> T): T? = try {
     null
 }
 
+/**
+ * A bout timer reading as the display shows it, in minutes and seconds.
+ * Rounded up to whole seconds, so 0:00 shows only once the bout timer has stopped.
+ */
+fun Duration.reading(): String {
+    val seconds = (inWholeMilliseconds + 999) / 1000
+    return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
+}
+
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
 /** One awarded point: who got it, the bout timer reading at that moment, and the score after it. */

@@ -48,6 +48,7 @@ import io.github.iirorantanen.hemascoreboard.bout.Fencer
 import io.github.iirorantanen.hemascoreboard.bout.LoggedPoint
 import io.github.iirorantanen.hemascoreboard.bout.RefereeAction
 import io.github.iirorantanen.hemascoreboard.bout.Settings
+import io.github.iirorantanen.hemascoreboard.bout.reading
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -60,12 +61,6 @@ private val Fencer.colour get() = when (this) {
 private val Fencer.label get() = when (this) {
     Fencer.RED -> "Red"
     Fencer.BLUE -> "Blue"
-}
-
-// Rounded up to whole seconds, so 0:00 shows only once the timer has stopped.
-private fun Duration.reading(): String {
-    val seconds = (inWholeMilliseconds + 999) / 1000
-    return "${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}"
 }
 
 /** Draws the bout and turns taps into referee actions. Holds no scoring rules. */
