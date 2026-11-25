@@ -2,9 +2,11 @@
 
 # HEMA Scorepad
 
-HEMA Scorepad is an Android scoreboard for one bout of Historical European Martial Arts (HEMA) sparring, operated by a referee on the sideline. It is not a tournament system.
+HEMA Scorepad is a scoreboard for one bout of Historical European Martial Arts (HEMA) sparring, operated by a referee on the sideline. It comes as an Android app and as a browser version, which opens at a web address on an iPhone or an Android phone. It is not a tournament system.
 
 ## What it does
+
+This list describes the Android app. The browser version follows the same bout rules and has the same display and the same controls. [Browser version](#browser-version) lists where it differs.
 
 - The display is split into a Red half and a Blue half, each showing that fencer's score.
 - Tapping a half awards one point to that fencer.
@@ -25,11 +27,54 @@ HEMA Scorepad is an Android scoreboard for one bout of Historical European Marti
 
 ## Install
 
+The Android app is installed from an APK. A phone that cannot install it, an iPhone for example, opens the [browser version](#browser-version).
+
 1. On an Android phone running Android 8.0 or newer, open the [latest release](https://github.com/iirorantanen/hema-scorepad/releases/latest).
 2. Download `hema-scorepad-<version>.apk` and open it.
 3. Allow the browser to install apps when Android asks.
 
 Android lists the app as "Scorepad". The full name does not fit under a launcher icon. The icon is the head of Fiore the Boar, the mascot, on black.
+
+## Browser version
+
+The browser version is the scoreboard at a web address:
+
+<https://iirorantanen.github.io/hema-scorepad/>
+
+It needs no install and no account. It is made for current Safari on an iPhone and current Chrome on an Android phone. The address answers from the first release after v1.0. Before that release it shows GitHub's page for a site that does not exist.
+
+Open the address once with a network connection. The browser then keeps the files of the scoreboard, and the scoreboard opens with no network connection, in a sports hall for example.
+
+Add the scoreboard to the home screen. Opened from there it fills the screen, with no address bar.
+
+On an iPhone, in Safari:
+
+1. Open the address.
+2. Tap the Share button. Where Safari shows none, tap the page menu button and then "Share".
+3. Tap "Add to Home Screen". It is further down the list of actions.
+4. Switch on "Open as Web App", where iOS shows that switch, and tap "Add".
+
+On an Android phone, in Chrome:
+
+1. Open the address.
+2. Tap More (⋮) at the right of the address bar.
+3. Tap "Install and create shortcut", then "Install". Earlier versions of Chrome name the menu item "Add to Home screen".
+
+Open the scoreboard once from the home screen while the phone still has a network connection. A phone can keep the files for the home screen apart from those of the browser.
+
+Where the browser version falls short of the Android app:
+
+- **No signal on an iPhone.** Safari on an iPhone has no vibration interface, and nothing takes the place of a signal: no sound and nothing on the display. The rest of the scoreboard works without it.
+- **Signals on an Android phone depend on the phone's sound mode.** In Chrome the signals are the same vibrations as in the Android app. A phone on silent or in Do Not Disturb may not give them.
+- **Full screen only from the home screen.** Opened in a browser tab, the scoreboard shares the screen with the browser's address bar.
+- **The screen may lock.** The browser version keeps the screen awake through the browser's wake lock. Chrome has one from version 84 and Safari on an iPhone from iOS 16.4; opened from the home screen, an iPhone needs iOS 18.4. In a browser without a wake lock the phone locks after its usual time. A browser that has one can refuse it, in power-saving mode for example.
+- **Safari clears a site that is not on the home screen.** After seven days of Safari use without a visit to the scoreboard, Safari on an iPhone deletes what the scoreboard stored: the files, the bout and the settings. The scoreboard then needs a network connection again. The scoreboard on the home screen is not counted as Safari and keeps them.
+
+Where the list under [What it does](#what-it-does) names the app or Android, the browser version does this:
+
+- The bout timer pauses when the page is hidden: another tab or another app in front, or the phone locked. The bout comes back paused after the page is reloaded and after the browser is closed.
+- The bout and the settings are saved in the browser, on the phone. Clearing the browser's data for the site clears them. Nothing about a bout leaves the phone: the scoreboard sends nothing, and every file it loads comes from its own address.
+- A release never reloads an open scoreboard. The first opening after a release still shows the version before it, while the browser fetches the new one. The new version shows at the next opening after every tab with the scoreboard, and the scoreboard opened from the home screen, has been closed.
 
 ## Development
 
@@ -86,7 +131,24 @@ Open `http://localhost:8081/` in a browser on the development machine, stop the 
 
 To check an update, start the server again, change a file of the browser version and build the site again. A page that is open keeps its version, also after a reload. Once every tab that shows the scoreboard is closed, the next one opened shows the new version.
 
-Pushing a `v*` tag publishes a signed APK as a GitHub Release. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
+Pushing a `v*` tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml). It publishes the Android app and the browser version from the commit the tag names, so both are the same version:
+
+1. The first job runs the check, `./gradlew check`.
+2. It builds the site with `./gradlew :browser:jsBrowserDistribution`, and then the signed APK. See [ADR 0001](docs/adr/0001-dedicated-release-signing-key.md) for how releases are signed.
+3. It publishes the APK as a GitHub Release.
+4. A second job publishes the site to GitHub Pages, at <https://iirorantanen.github.io/hema-scorepad/>. That job is handed no signing secret.
+
+A step that fails stops the steps after it, so nothing is published before the check passes, and the site is not published without the APK.
+
+The site is the directory `browser/build/dist/js/productionExecutable` as the build writes it. The source map `browser.js.map` is published with it. A browser's developer tools fetch it; the scoreboard does not, and the service worker does not keep it.
+
+Publishing the site depends on repository settings. The repository owner sets them once, before the first tag that publishes the site:
+
+- Under Settings, Pages, "Build and deployment", the source is "GitHub Actions".
+- Under Settings, Environments, `github-pages`, "Deployment branches and tags" is "Selected branches and tags", with one rule of ref type "Tag" and name pattern `v*`. The workflow runs on a tag, and GitHub's default for that environment lets only the default branch deploy. If the environment is not listed, create it under that name.
+- After the first release that publishes the site, the repository's website link, under "About" on the repository page, is set to the address.
+
+When the second job fails on a setting, the GitHub Release is already published. Correct the setting and re-run the failed job within one day: GitHub keeps the built site for that long.
 
 The artwork is in [`docs/brand/`](docs/brand/):
 
