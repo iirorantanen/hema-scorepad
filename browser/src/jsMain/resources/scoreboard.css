@@ -44,7 +44,16 @@ button {
 /* As large as the half allows: a digit is about 0.6 of the font size wide. */
 .half span { font-size: min(130cqw / var(--digits), 80cqh); font-weight: bold; line-height: 1; }
 
-/* The top padding is a dead strip, so a tap slightly high on a control lands on nothing. */
+/* Below the halves so a thumb reaches it one-handed, above the controls so it clears the home-swipe edge.
+   "Last exchange" is inside the button, so it adds no dead strip between the halves and the bout timer.
+   Dimmed while paused: the reading alone takes up to a second to show a start. */
+#timer { display: flex; flex-direction: column; align-items: center; padding: 8px; color: #888; font-size: 3.5rem; font-weight: bold; }
+#timer.running { color: #fff; }
+#last-exchange { color: #ff0; font-size: 1.5rem; }
+/* The display set above would show a hidden element. */
+[hidden] { display: none !important; }
+
+/* The top padding is a dead strip, so a tap slightly high on a control, or slightly low on the bout timer, lands on nothing. */
 #controls { display: flex; justify-content: space-between; padding-top: 12px; }
 
 dialog {

@@ -8,12 +8,13 @@
 <script src="browser.js" defer></script>
 </head>
 <body>
-<!-- Screen.kt fills in the scores, the accessible names of the halves and the point log. -->
+<!-- Screen.kt fills in the scores, the bout timer, the accessible names of the halves and the bout timer, and the point log. -->
 <main>
   <div id="halves">
     <button id="red" class="half red"><span></span></button>
     <button id="blue" class="half blue"><span></span></button>
   </div>
+  <button id="timer"><span id="last-exchange" hidden>Last exchange</span><span></span></button>
   <div id="controls">
     <button id="undo" aria-label="Undo the most recent point">Undo</button>
     <button id="log" aria-label="Show the point log">Log</button>
