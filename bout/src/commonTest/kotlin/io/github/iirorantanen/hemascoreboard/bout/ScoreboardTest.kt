@@ -215,6 +215,37 @@ class ScoreboardTest {
     }
 
     @Test
+    fun `a deduction is brought back at the next launch, and undo there restores the score`() {
+        val store = InMemoryBoutStore()
+        val scoreboard = Scoreboard(store) {}
+        scoreboard.handle(RefereeAction.AwardPoint(Fencer.RED))
+        scoreboard.handle(RefereeAction.DeductPoint(Fencer.RED))
+
+        val nextLaunch = Scoreboard(store) {}
+        val broughtBack = nextLaunch.bout
+        val undone = nextLaunch.handle(RefereeAction.Undo)
+
+        assertEquals(LoggedPoint(Fencer.RED, 3.minutes, 0, 0, deduction = true), broughtBack.log.last())
+        assertEquals(1, undone.score(Fencer.RED))
+    }
+
+    @Test
+    fun `a bout stored by v1_1 is brought back`() {
+        // Written by the v1.1 release, before deductions.
+        val stored = "180000000000 true 10 true\n120000000000 true 5 true\n170000000000 false false\n" +
+            "RED 175000000000 1 0\nBLUE 172000000000 1 1"
+
+        val bout = Scoreboard(InMemoryBoutStore(stored)) {}.bout
+
+        assertEquals(
+            listOf(LoggedPoint(Fencer.RED, 2.minutes + 55.seconds, 1, 0), LoggedPoint(Fencer.BLUE, 2.minutes + 52.seconds, 1, 1)),
+            bout.log,
+        )
+        assertEquals(Settings(boutLength = 2.minutes, pointCap = 5), bout.nextSettings)
+        assertEquals(2.minutes + 50.seconds, bout.timeRemaining)
+    }
+
+    @Test
     fun `a new bout started after the bout timer ran is still new at the next launch`() {
         val store = InMemoryBoutStore()
         val scoreboard = Scoreboard(store) {}

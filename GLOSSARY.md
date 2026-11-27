@@ -29,7 +29,7 @@ The score at which a bout ends, chosen by the referee before the bout. No fencer
 _Avoid_: Target score, max points, first-to
 
 **Settings**:
-The bout length and the point cap as the referee has chosen them. Each can be switched off on its own and keeps its value while off. They are remembered between bouts and between app launches. A change applies to the current bout while no points stand and the bout timer has not run, and from the next new bout otherwise.
+The bout length and the point cap as the referee has chosen them. Each can be switched off on its own and keeps its value while off. They are remembered between bouts and between app launches. A change applies to the current bout while the point log is empty and the bout timer has not run, and from the next new bout otherwise.
 _Avoid_: Preferences, options, ruleset, preset
 
 **Fencer**:
@@ -48,16 +48,20 @@ _Avoid_: User, judge, scorekeeper
 One unit of score the referee awards directly to a fencer. The scoreboard does not know why the point was given.
 _Avoid_: Hit, touch
 
+**Deduction**:
+One point the referee takes off a fencer's score, recorded in the point log. A score never goes below 0.
+_Avoid_: Penalty, minus point, negative point
+
 **Point log**:
-The list of points awarded in a bout that still stand, each with the fencer, the bout timer reading when it was awarded and the score after it. An undone point is not in it, so it always matches the score.
+The list of entries that still stand in a bout: each point awarded and each deduction. Every entry has the fencer, the bout timer reading at that moment and the score after it. An undone entry is not in it, so it always matches the score.
 _Avoid_: History, event log, score history
 
 **Undo**:
-Taking back the most recent point, as if it had never been awarded. It can be repeated back to 0–0, cannot be reversed, and does not change the bout timer, except that a settings change waiting for the next new bout applies once undo leaves no points standing in a bout whose bout timer has not run.
+Taking back the most recent entry in the point log, whole, as if it had never been made. It can be repeated until the point log is empty, cannot be reversed, and does not change the bout timer, except that a settings change waiting for the next new bout applies once undo leaves the point log empty in a bout whose bout timer has not run.
 _Avoid_: Revert, correction, remove point
 
 **Signal**:
-Something the scoreboard gives to tell the referee what happened without them looking at the display. There are four: a Red point, a Blue point, the last exchange, and the end of the bout when a fencer reaches the point cap.
+Something the scoreboard gives to tell the referee what happened without them looking at the display. There are five: a Red point, a Blue point, a deduction, the last exchange, and the end of the bout when a fencer reaches the point cap.
 _Avoid_: Alert, notification, haptic
 
 **Bout timer**:
@@ -65,7 +69,7 @@ A countdown from the bout length that keeps running while points are awarded, un
 _Avoid_: Clock, stopwatch
 
 **Half**:
-The part of the display that belongs to one fencer. It shows that fencer's score in their colour, and the referee awards them a point by tapping anywhere on it. A half is a fencer's and a side is a place: the Red half is on the left side or the right side of the display, and swap sides moves it to the other.
+The part of the display that belongs to one fencer. It shows that fencer's score in their colour, and the referee awards them a point by tapping anywhere on it and deducts one by touching and holding it. A half is a fencer's and a side is a place: the Red half is on the left side or the right side of the display, and swap sides moves it to the other.
 _Avoid_: Side as a name for a fencer's half, panel, zone, column
 
 **Divider**:

@@ -304,6 +304,57 @@ class BoutTest {
         (1..points).fold(this) { bout, _ -> bout.handle(RefereeAction.AwardPoint(fencer)).state }
 
     @Test
+    fun `a deduction takes one point off that fencer, logs it and gives the deduction signal`() {
+        val update = BoutState().award(Fencer.BLUE, 1).award(Fencer.RED, 3)
+            .handle(RefereeAction.DeductPoint(Fencer.RED))
+
+        assertEquals(2, update.state.score(Fencer.RED))
+        assertEquals(1, update.state.score(Fencer.BLUE))
+        assertEquals(LoggedPoint(Fencer.RED, 3.minutes, red = 2, blue = 1, deduction = true), update.state.log.last())
+        assertEquals(5, update.state.log.size)
+        assertEquals(listOf(Signal.DEDUCTION), update.signals)
+    }
+
+    @Test
+    fun `a deduction at a score of 0 changes nothing and gives no signal`() {
+        val bout = BoutState().award(Fencer.BLUE, 1)
+
+        val update = bout.handle(RefereeAction.DeductPoint(Fencer.RED))
+
+        assertEquals(bout, update.state)
+        assertEquals(emptyList(), update.signals)
+        assertEquals(0, update.state.handle(RefereeAction.Undo).state.score(Fencer.BLUE))
+    }
+
+    @Test
+    fun `undo after a deduction restores the score and removes its entry, without a signal`() {
+        val bout = BoutState().award(Fencer.RED, 3)
+
+        val update = bout.handle(RefereeAction.DeductPoint(Fencer.RED)).state.handle(RefereeAction.Undo)
+
+        assertEquals(3, update.state.score(Fencer.RED))
+        assertEquals(bout.log, update.state.log)
+        assertEquals(emptyList(), update.signals)
+    }
+
+    @Test
+    fun `a deduction at the point cap lets that fencer be awarded again, ending the bout again, with the bout timer paused`() {
+        val atCap = BoutState().handle(RefereeAction.ToggleTimer).state.award(Fencer.RED, 10)
+
+        val deducted = atCap.handle(RefereeAction.DeductPoint(Fencer.RED)).state.elapse(10.seconds).state
+        val again = deducted.handle(RefereeAction.AwardPoint(Fencer.RED))
+
+        assertFalse(deducted.timerRunning)
+        assertEquals(atCap.timeRemaining, deducted.timeRemaining)
+        assertEquals(10, again.state.score(Fencer.RED))
+        assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), again.signals)
+
+        val undone = atCap.handle(RefereeAction.DeductPoint(Fencer.RED)).state.handle(RefereeAction.Undo).state
+        assertEquals(atCap, undone)
+        assertEquals(emptyList(), undone.handle(RefereeAction.AwardPoint(Fencer.RED)).signals)
+    }
+
+    @Test
     fun `the point that reaches the point cap gives the point signal, then the end of bout signal`() {
         val ninth = BoutState().award(Fencer.RED, 8).handle(RefereeAction.AwardPoint(Fencer.RED))
 
@@ -504,6 +555,24 @@ class BoutTest {
     }
 
     @Test
+    fun `a bout with a deduction written out and read back has the same point log`() {
+        val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.BLUE)).state
+            .handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.DeductPoint(Fencer.BLUE)).state
+
+        val readBack = assertNotNull(BoutState.fromText(bout.toText()))
+
+        assertEquals(
+            listOf(
+                LoggedPoint(Fencer.BLUE, 3.minutes, 0, 1),
+                LoggedPoint(Fencer.RED, 3.minutes, 1, 1),
+                LoggedPoint(Fencer.BLUE, 3.minutes, 1, 0, deduction = true),
+            ),
+            readBack.log,
+        )
+    }
+
+    @Test
     fun `text that is not a written-out bout reads back as nothing`() {
         val bout = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state.toText()
 
@@ -512,6 +581,7 @@ class BoutTest {
         assertNull(BoutState.fromText(Settings().toText()))
         assertNull(BoutState.fromText(bout.replace("RED", "GREEN")))
         assertNull(BoutState.fromText(bout.replace("true", "yes")))
+        assertNull(BoutState.fromText("$bout penalty"))
     }
 
     @Test
@@ -705,6 +775,20 @@ class BoutTest {
         val fifth = undone.state.award(Fencer.RED, 4).handle(RefereeAction.AwardPoint(Fencer.RED))
 
         assertEquals(listOf(Signal.RED_POINT, Signal.END_OF_BOUT), fifth.signals)
+    }
+
+    @Test
+    fun `a bout at 0-0 after a point and its deduction has begun, so a settings change waits for the next new bout`() {
+        val changed = BoutState().handle(RefereeAction.AwardPoint(Fencer.RED)).state
+            .handle(RefereeAction.DeductPoint(Fencer.RED)).state
+            .handle(RefereeAction.ChangeSettings(Settings(boutLength = 90.seconds))).state
+
+        assertEquals(3.minutes, changed.timeRemaining)
+        assertEquals(Settings(), changed.settings)
+        assertEquals(90.seconds, changed.handle(RefereeAction.NewBout).state.timeRemaining)
+
+        val undoneBoth = changed.handle(RefereeAction.Undo).state.handle(RefereeAction.Undo).state
+        assertEquals(90.seconds, undoneBoth.timeRemaining)
     }
 
     @Test

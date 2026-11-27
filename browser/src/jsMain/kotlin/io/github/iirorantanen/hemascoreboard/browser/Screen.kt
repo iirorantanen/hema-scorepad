@@ -12,6 +12,7 @@ import kotlinx.dom.appendElement
 import kotlinx.dom.clear
 import org.w3c.dom.HTMLDialogElement
 import org.w3c.dom.HTMLElement
+import org.w3c.dom.pointerevents.PointerEvent
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -25,6 +26,32 @@ private val Fencer.id get() = name.lowercase()
 
 private fun element(id: String) = document.getElementById(id) as HTMLElement
 
+// Android's default long-press time, so a hold feels the same in both versions.
+private const val HOLD_MS = 400
+
+/** Calls [onTap] for a tap on [element], and [onHold] instead for a touch or main mouse button held for [HOLD_MS]. */
+private fun onTapAndHold(element: HTMLElement, onTap: () -> Unit, onHold: () -> Unit) {
+    var holdTimer = 0
+    var held = false
+    element.addEventListener("pointerdown", {
+        // A second finger starts the hold over, so two quick taps never leave a timer running.
+        window.clearTimeout(holdTimer)
+        held = false
+        if ((it as PointerEvent).button == 0.toShort()) {
+            holdTimer = window.setTimeout({
+                held = true
+                onHold()
+            }, HOLD_MS)
+        }
+    })
+    // Lifting, the mouse leaving or the browser taking the touch ends the hold before it fires.
+    listOf("pointerup", "pointerleave", "pointercancel").forEach {
+        element.addEventListener(it, { window.clearTimeout(holdTimer) })
+    }
+    // The click that ends a hold is not also a tap.
+    element.onclick = { if (held) held = false else onTap() }
+}
+
 /** A dialog in index.html. A tap outside closes it. */
 private fun dialog(id: String) = (element(id) as HTMLDialogElement).also { dialog ->
     // The dialog's content fills it, so a tap that lands on the dialog itself is a tap outside.
@@ -37,7 +64,13 @@ private fun dialog(id: String) = (element(id) as HTMLDialogElement).also { dialo
  */
 fun showScreen(scoreboard: Scoreboard) {
     fun handle(action: RefereeAction) = draw(scoreboard.handle(action))
-    Fencer.entries.forEach { fencer -> element(fencer.id).onclick = { handle(RefereeAction.AwardPoint(fencer)) } }
+    Fencer.entries.forEach { fencer ->
+        onTapAndHold(
+            element(fencer.id),
+            onTap = { handle(RefereeAction.AwardPoint(fencer)) },
+            onHold = { handle(RefereeAction.DeductPoint(fencer)) },
+        )
+    }
     element("timer").onclick = { handle(RefereeAction.ToggleTimer) }
     element("undo").onclick = { handle(RefereeAction.Undo) }
     val pointLog = dialog("point-log")
@@ -84,7 +117,7 @@ private fun draw(bout: BoutState) {
     Fencer.entries.forEach { fencer ->
         val score = bout.score(fencer).toString()
         val half = element(fencer.id)
-        half.setAttribute("aria-label", "${fencer.label} $score, award a point")
+        half.setAttribute("aria-label", "${fencer.label} $score, award a point, hold to deduct a point from ${fencer.label}")
         half.firstElementChild!!.textContent = score
         // The style sheet sizes the digits to fit the half.
         half.style.setProperty("--digits", score.length.toString())
@@ -139,7 +172,7 @@ private fun drawPointLog(bout: BoutState) {
                 className = point.fencer.id
                 // With the bout timer off there is no reading to show.
                 val reading = if (bout.settings.timerOn) "${point.timeRemaining.reading()}  " else ""
-                textContent = reading + point.fencer.label
+                textContent = reading + point.fencer.label + if (point.deduction) " −1" else ""
             }
             appendElement("span") { textContent = "Red ${point.red} – Blue ${point.blue}" }
         }

@@ -2,6 +2,7 @@ package io.github.iirorantanen.hemascoreboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,7 +91,7 @@ fun Screen(bout: BoutState, onAction: (RefereeAction) -> Unit) {
                 ),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Control("Undo", "Undo the most recent point") { onAction(RefereeAction.Undo) }
+            Control("Undo", "Undo the most recent entry") { onAction(RefereeAction.Undo) }
             Control("Log", "Show the point log") { showLog = true }
             Control("Swap", "Swap sides") { onAction(RefereeAction.SwapSides) }
             Control("New bout", "Start a new bout") { showNewBoutConfirmation = true }
@@ -230,7 +231,8 @@ private fun PointLog(log: List<LoggedPoint>, showReadings: Boolean, onDismiss: (
                 Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     BasicText(
                         // With the bout timer off there is no reading to show.
-                        text = (if (showReadings) "${point.timeRemaining.reading()}  " else "") + point.fencer.label,
+                        text = (if (showReadings) "${point.timeRemaining.reading()}  " else "") + point.fencer.label +
+                            if (point.deduction) " −1" else "",
                         style = dialogText.copy(color = point.fencer.colour),
                     )
                     BasicText(text = "Red ${point.red} – Blue ${point.blue}", style = dialogText)
@@ -279,13 +281,17 @@ private fun Timer(remaining: Duration, running: Boolean, inLastExchange: Boolean
 @Composable
 private fun RowScope.Half(fencer: Fencer, score: Int, onAction: (RefereeAction) -> Unit) {
     Box(
-        // clickable comes before the padding so the whole half is the tap target.
+        // combinedClickable comes before the padding so the whole half is the tap and hold target.
         Modifier
             .weight(1f)
             .fillMaxHeight()
-            .clickable(onClickLabel = "Award a point to ${fencer.label}") {
-                onAction(RefereeAction.AwardPoint(fencer))
-            }
+            .combinedClickable(
+                onClickLabel = "Award a point to ${fencer.label}",
+                onLongClickLabel = "Deduct a point from ${fencer.label}",
+                onLongClick = { onAction(RefereeAction.DeductPoint(fencer)) },
+                // The deduction signal is the referee's feedback; a long-press buzz before it would blur its pulses.
+                hapticFeedbackEnabled = false,
+            ) { onAction(RefereeAction.AwardPoint(fencer)) }
             .safeDrawingPadding()
             .padding(16.dp),
         contentAlignment = Alignment.Center,

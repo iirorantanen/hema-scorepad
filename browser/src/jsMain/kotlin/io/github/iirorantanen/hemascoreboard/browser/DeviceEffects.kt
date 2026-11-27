@@ -14,13 +14,14 @@ private const val END_OF_BOUT_PULSE_MS = 400
 private const val BETWEEN_SIGNALS_MS = 400
 
 /**
- * One pulse for a Red point, two for a Blue point, one long vibration for the last exchange,
+ * One pulse for a Red point, two for a Blue point, three for a deduction, one long vibration for the last exchange,
  * three medium pulses for the end of the bout.
  * Timings alternate on, off, on.
  */
 private fun Signal.timings(): Array<Int> = when (this) {
     Signal.RED_POINT -> arrayOf(PULSE_MS)
     Signal.BLUE_POINT -> arrayOf(PULSE_MS, GAP_MS, PULSE_MS)
+    Signal.DEDUCTION -> arrayOf(PULSE_MS, GAP_MS, PULSE_MS, GAP_MS, PULSE_MS)
     Signal.LAST_EXCHANGE -> arrayOf(LAST_EXCHANGE_MS)
     Signal.END_OF_BOUT -> arrayOf(END_OF_BOUT_PULSE_MS, GAP_MS, END_OF_BOUT_PULSE_MS, GAP_MS, END_OF_BOUT_PULSE_MS)
 }

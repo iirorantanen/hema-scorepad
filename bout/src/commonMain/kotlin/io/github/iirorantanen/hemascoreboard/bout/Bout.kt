@@ -10,7 +10,10 @@ enum class Fencer { RED, BLUE }
 sealed interface RefereeAction {
     data class AwardPoint(val fencer: Fencer) : RefereeAction
 
-    /** Takes back the most recent point. There is no redo. */
+    /** Takes one point off the fencer's score. A score never goes below 0. */
+    data class DeductPoint(val fencer: Fencer) : RefereeAction
+
+    /** Takes back the most recent entry in the point log, a point or a deduction. There is no redo. */
     data object Undo : RefereeAction
 
     /** A tap on the bout timer: starts it, pauses it or resumes it. */
@@ -32,7 +35,7 @@ sealed interface RefereeAction {
 }
 
 /** Something the referee should be told about, without looking at the screen. */
-enum class Signal { RED_POINT, BLUE_POINT, LAST_EXCHANGE, END_OF_BOUT }
+enum class Signal { RED_POINT, BLUE_POINT, DEDUCTION, LAST_EXCHANGE, END_OF_BOUT }
 
 /** The bout length and the point cap. Each can be switched off and keeps its value while off. */
 data class Settings(
@@ -74,8 +77,17 @@ fun Duration.reading(): String {
 
 data class BoutUpdate(val state: BoutState, val signals: List<Signal>)
 
-/** One awarded point: who got it, the bout timer reading at that moment, and the score after it. */
-data class LoggedPoint(val fencer: Fencer, val timeRemaining: Duration, val red: Int, val blue: Int)
+/**
+ * One entry in the point log, an awarded point or a deduction: the fencer, the bout timer reading at that moment,
+ * and the score after it.
+ */
+data class LoggedPoint(
+    val fencer: Fencer,
+    val timeRemaining: Duration,
+    val red: Int,
+    val blue: Int,
+    val deduction: Boolean = false,
+)
 
 data class BoutState(
     /** The settings this bout started with. They hold for the whole bout. */
@@ -97,7 +109,9 @@ data class BoutState(
      */
     fun toText(): String = (
         listOf(settings.toText(), nextSettings.toText(), "${timeRemaining.inWholeNanoseconds} $inLastExchange $sidesSwapped") +
-            log.map { "${it.fencer} ${it.timeRemaining.inWholeNanoseconds} ${it.red} ${it.blue}" }
+            log.map {
+                "${it.fencer} ${it.timeRemaining.inWholeNanoseconds} ${it.red} ${it.blue}" + if (it.deduction) " deduction" else ""
+            }
         ).joinToString("\n")
 
     companion object {
@@ -109,8 +123,15 @@ data class BoutState(
                 settings = readSettings(lines[0]),
                 nextSettings = readSettings(lines[1]),
                 log = lines.drop(3).map { line ->
-                    val (fencer, time, red, blue) = line.split(' ')
-                    LoggedPoint(Fencer.valueOf(fencer), time.toLong().nanoseconds, red.toInt(), blue.toInt())
+                    val words = line.split(' ')
+                    val (fencer, time, red, blue) = words
+                    // An awarded point has four words, as v1.1 and earlier wrote every entry; a deduction adds a fifth.
+                    val deduction = when (words.drop(4)) {
+                        emptyList<String>() -> false
+                        listOf("deduction") -> true
+                        else -> error("Not an entry: $line")
+                    }
+                    LoggedPoint(Fencer.valueOf(fencer), time.toLong().nanoseconds, red.toInt(), blue.toInt(), deduction)
                 },
                 timeRemaining = timeRemaining.toLong().nanoseconds,
                 inLastExchange = inLastExchange.toBooleanStrict(),
@@ -148,9 +169,19 @@ data class BoutState(
                 if (reachesCap && !alreadyEnded) listOf(signal, Signal.END_OF_BOUT) else listOf(signal),
             )
         }
+        is RefereeAction.DeductPoint -> if (score(action.fencer) == 0) {
+            BoutUpdate(this, emptyList())
+        } else {
+            val red = score(Fencer.RED) - if (action.fencer == Fencer.RED) 1 else 0
+            val blue = score(Fencer.BLUE) - if (action.fencer == Fencer.BLUE) 1 else 0
+            BoutUpdate(
+                copy(log = log + LoggedPoint(action.fencer, timeRemaining, red, blue, deduction = true)),
+                listOf(Signal.DEDUCTION),
+            )
+        }
         RefereeAction.Undo -> {
             val undone = copy(log = log.dropLast(1))
-            // Undoing the only point leaves a bout that has not begun, so a change stored during it applies now.
+            // Undoing the only entry leaves a bout that has not begun, so a change stored during it applies now.
             BoutUpdate(if (undone.begun) undone else undone.fresh(nextSettings), emptyList())
         }
         RefereeAction.ToggleTimer ->
@@ -166,7 +197,7 @@ data class BoutState(
         }
     }
 
-    /** False while no points stand and the bout timer has not run. */
+    /** False while the point log is empty and the bout timer has not run. */
     private val begun: Boolean get() = log.isNotEmpty() || timerRunning || timeRemaining != settings.boutLength
 
     // A fresh state, so nothing else can carry over; only the side arrangement is kept.
